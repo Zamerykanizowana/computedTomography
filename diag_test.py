@@ -34,6 +34,9 @@ img_empty = np.zeros((width, height), dtype=np.uint8)
 #img[first_diag[0], first_diag[1]] = 255
 #img[second_diag[0], second_diag[1]] = 130
 
-img[0, 10] = 255
+
+#[y, x] so [0,0] is left bottom corner and [0,max lenght] is right bottom corner
+
+img[10, 10] = 255
 
 io.imsave(img_path+'.diag.jpg', img)
