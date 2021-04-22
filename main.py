@@ -1,6 +1,8 @@
 import sys
 import numpy as np
+import math
 from skimage import io, draw, img_as_ubyte
+
 
 img_path = sys.argv[1]
 
@@ -10,6 +12,7 @@ print("---------------------------------------------")
 width = len(img[0])
 height = len(img)
 print("Width of " + img_path + " is: " + str(width))
+print("Height of " + img_path + " is: " + str(height))
 print("Middle element is " + str(int(width/2)))
 sum_det = 0
 for ele in img:
@@ -19,11 +22,9 @@ print("Sum of pixels value for basic detector: " + str(sum_det))
 avg=int(sum_det/height)
 print("Avg value of pixel for basic detector: " + str(avg))
 print("---------------------------------------------")
-#possibly coordinates, couse I still don't know how it works :(
+#coordinates
 tmp_tab = draw.line_nd((0,0),((height-1),(width-1)),endpoint=True)
 
-#print(foo[0][7])
-#print(foo[1])
 value_tab = []
 tab_len = len(tmp_tab[0])
 print("tab_len is equil: " + str(tab_len))
@@ -44,5 +45,13 @@ for ele in value_tab:
 	img[ele[0],ele[1]] = 255
 
 io.imsave(img_path + ".diag.jpg",img)
-print("Done?")
-print("Yes!")
+print("Img " + img_path + ".diag.jpg" + " saved.")
+
+print("---------------------------------------------")
+#width = len(img[0])
+#height = len(img)
+
+r = (math.sqrt(width**2+height**2))/2
+print("Radius is equil " + str(r))
+
+
