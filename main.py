@@ -3,6 +3,14 @@ import numpy as np
 import math
 from skimage import io, draw, img_as_ubyte
 
+def line_to_y_x_list(line_nd_out):
+    ret = []
+    i = 0
+    while i < len(line_nd_out[0]):
+        ret.append([line_nd_out[0][i], line_nd_out[1][i]])
+        i += 1
+
+    return ret
 
 img_path = sys.argv[1]
 
@@ -25,17 +33,11 @@ print("---------------------------------------------")
 #coordinates
 tmp_tab = draw.line_nd((height/2,-width/2),(-(height-2)/2,(width-2)/2),endpoint=True)
 
-value_tab = []
+value_tab = line_to_y_x_list(tmp_tab)
+
 tab_len = len(tmp_tab[0])
 print(f'tab_len is equal {tab_len}')
 #print(tmp_tab)
-i = 0
-while i < tab_len:
-	tmp = []
-	tmp.append(tmp_tab[0][i])
-	tmp.append(tmp_tab[1][i])
-	value_tab.append(tmp)
-	i+=1
 #in value_tab are tables with coordinates points to count values in the curve
 print(value_tab)
 
