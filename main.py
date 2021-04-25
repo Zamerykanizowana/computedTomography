@@ -73,7 +73,7 @@ def count_pt_for_one_scan(start_angle, gamma, n, r):
 #switch frame of reference (19,-10) --> (0,0)
 def signed_trace_to_unsigned_trace(pts_tab_tup, h, w):
 	result = []
-	for ele in pts_tup:
+	for ele in pts_tab_tup:
 		y_tmp = abs(ele[0]-(h//2-1))
 		x_tmp = ele[1]+w//2
 		tmp_tup = y_tmp,x_tmp
@@ -96,15 +96,20 @@ print("Height of " + img_path + " is: " + str(height))
 r = (math.sqrt(width**2+height**2))/2
 print("radius is equal " + str(r))
 
-#result = count_pt_for_one_scan(180, 10, 3, r)
+result = count_pt_for_one_scan(180, 30, 3, r)
 #tmp result for test function signed_trace_to_unsigned_trace
-result = [[(19, -10)],[(-20,9)]]
+#result = [[(19, -10)],[(-20,9)]]
 print(f'result is equal : {result}')
 
 solved = edp_trace(result, height, width)
 print(f'solved is equal : {solved}')
 
-done = signed_trace_to_unsigned_trace(solved[0], height, width)
-print(f'done is equal : {done}')
-
 print(50*"-")
+done = []
+for ele in solved:
+	done.append(signed_trace_to_unsigned_trace(ele, height, width))
+i = 0
+while i < len(done):
+	print(f'done[{i}] is equal : {done[i]}')
+	print(50*"-")
+	i += 1
