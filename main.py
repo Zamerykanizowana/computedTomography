@@ -33,7 +33,7 @@ def edp_trace(cpfos_output, h, w):
     for ped in zip(cpfos_output[0], cpfos_output[1]):
         line_to_filter = line_to_y_x_list(
                 draw.line_nd(ped[0], ped[1], endpoint=True)
-        )
+                )
 
         for yx_pair in list(line_to_filter):
             if not yx_pair[0] in y_range or not yx_pair[1] in x_range:
@@ -47,69 +47,76 @@ def edp_trace(cpfos_output, h, w):
 #gamma - angular span (PL rozpietosc katowa)
 #n - number of detector/emitter
 def count_pt_for_one_scan(start_angle, gamma, n, r):
-	gamma_pi = gamma * np.pi / 180
-	gamma_i = gamma/(n-1)
-	result_tab_det = []
-	result_tab_em = []
-	start = start_angle - gamma/2
-	stop = start_angle - 180 - gamma/2
-	while n > 0:
-		y_1 = int(r * math.sin(math.radians(start)))
-		x_1 = int(r * math.cos(math.radians(start)))
-		tmp_tab_start = y_1,x_1
-		y_2 = int(r * math.sin(math.radians(stop)))
-		x_2 = int(r * math.cos(math.radians(stop)))
-		tmp_tab_stop = y_2,x_2
-		result_tab_det.append(tmp_tab_start)
-		result_tab_em.append(tmp_tab_stop)
-		start += gamma_i
-		stop += gamma_i
-		n-=1
-	#print(f'result_tab_det is equal {result_tab_det}')
-	#print(f'result_tab_em is equal {result_tab_em}')
-	return [result_tab_det, result_tab_em]
+    gamma_pi = gamma * np.pi / 180
+    gamma_i = gamma/(n-1)
+    result_tab_det = []
+    result_tab_em = []
+    start = start_angle - gamma/2
+    stop = start_angle - 180 - gamma/2
+    while n > 0:
+        y_1 = int(r * math.sin(math.radians(start)))
+        x_1 = int(r * math.cos(math.radians(start)))
+        tmp_tab_start = y_1,x_1
+        y_2 = int(r * math.sin(math.radians(stop)))
+        x_2 = int(r * math.cos(math.radians(stop)))
+        tmp_tab_stop = y_2,x_2
+        result_tab_det.append(tmp_tab_start)
+        result_tab_em.append(tmp_tab_stop)
+        start += gamma_i
+        stop += gamma_i
+        n-=1
+    #print(f'result_tab_det is equal {result_tab_det}')
+    #print(f'result_tab_em is equal {result_tab_em}')
+    return [result_tab_det, result_tab_em]
 
 
 #switch frame of reference (19,-10) --> (0,0)
 def signed_trace_to_unsigned_trace(pts_tab_tup, h, w):
-	result = []
-	for ele in pts_tab_tup:
-		y_tmp = abs(ele[0]-(h//2-1))
-		x_tmp = ele[1]+w//2
-		tmp_tup = y_tmp,x_tmp
-		result.append(tmp_tup)
-	return result
+    result = []
+    for ele in pts_tab_tup:
+        y_tmp = abs(ele[0]-(h//2-1))
+        x_tmp = ele[1]+w//2
+        tmp_tup = y_tmp,x_tmp
+        result.append(tmp_tup)
+    return result
 
+class SingleScan:
+    def __init__(self, start_angle, span, n, w, h):
+        self.radius = (math.sqrt(w**2+h**2))/2
+        self.points = count_pt_for_one_scan(
+                start_angle, span, n, self.radius
+                )
+        self.traces = edp_trace(self.points, h, w)
+        self.traces_unsigned = [
+                signed_trace_to_unsigned_trace(e, h, w) for e in self.traces
+                ]
+
+class CTScan:
+    def __init__(self, image_path):
+        self.input_image = img_as_ubyte(io.imread(image_path, as_gray=True))
+        self.width = len(self.input_image[0])
+        self.height = len(self.input_image)
+        self.radius = (math.sqrt(self.width**2+self.height**2))/2
 
 img_path = sys.argv[1]
 
-img = img_as_ubyte(io.imread(img_path, as_gray=True))
-
 print("---------------------------------------------")
-width = len(img[0])
-height = len(img)
-print("Width of " + img_path + " is: " + str(width))
-print("Height of " + img_path + " is: " + str(height))
+
+c = CTScan(img_path)
+print(f"Width of {img_path} is: {c.width}")
+print(f"Height of {img_path} is: {c.height}")
 
 #io.imsave(img_path + ".diag.jpg",img)
 #print("Img " + img_path + ".diag.jpg" + " saved.")
-r = (math.sqrt(width**2+height**2))/2
-print("radius is equal " + str(r))
+print(f"Radius is equal to {c.radius}")
 
-result = count_pt_for_one_scan(180, 30, 3, r)
-#tmp result for test function signed_trace_to_unsigned_trace
-#result = [[(19, -10)],[(-20,9)]]
-print(f'result is equal : {result}')
+first_scan = SingleScan(180, 30, 3, c.width, c.height)
 
-solved = edp_trace(result, height, width)
-print(f'solved is equal : {solved}')
+print(f'Emitter points: {first_scan.points}')
+print(f'Emitter traces: {first_scan.traces}')
 
 print(50*"-")
-done = []
-for ele in solved:
-	done.append(signed_trace_to_unsigned_trace(ele, height, width))
-i = 0
-while i < len(done):
-	print(f'done[{i}] is equal : {done[i]}')
-	print(50*"-")
-	i += 1
+
+for trace_num, trace in enumerate(first_scan.traces_unsigned):
+    print(f'[{trace_num}]: {trace}')
+    print(50*"-")
