@@ -3,14 +3,8 @@ import numpy as np
 import math
 from skimage import io, draw, img_as_ubyte
 
-def line_to_y_x_list(line_nd_out):
-    ret = []
-    i = 0
-    while i < len(line_nd_out[0]):
-        ret.append([line_nd_out[0][i], line_nd_out[1][i]])
-        i += 1
-
-    return ret
+def line_to_y_x_list(l):
+    return list(zip(l[0], l[1]))
 
 img_path = sys.argv[1]
 
@@ -72,21 +66,16 @@ pt_stop.append(y_2)
 print(f'pt_start is equal {pt_start}')
 print(f'pt_stop is equal {pt_stop}')
 
+print(type(pt_start))
+print(type(pt_stop))
 
 #coordinates
-tmp_tab = draw.line_nd(tuple(list(pt_start)),tuple(list(pt_stop)),endpoint=True)
+tmp_tab = draw.line_nd(tuple(pt_start),tuple(pt_stop),endpoint=True)
 
-value_tab = []
+value_tab = line_to_y_x_list(tmp_tab)
 tab_len = len(tmp_tab[0])
 print(f'tab_len is equal {tab_len}')
 #print(tmp_tab)
-i = 0
-while i < tab_len:
-	tmp = []
-	tmp.append(tmp_tab[0][i])
-	tmp.append(tmp_tab[1][i])
-	value_tab.append(tmp)
-	i+=1
 #in value_tab are tables with coordinates points to count values in the curve
 print(value_tab)
 
