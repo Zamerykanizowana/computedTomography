@@ -6,6 +6,24 @@ from skimage import io, draw, img_as_ubyte
 def line_to_y_x_list(l):
     return list(zip(l[0], l[1]))
 
+#alfa - angular shift (PL przesuniecie katowe 'szyny' z detektorami)
+#gamma - angular span (PL rozpietosc katowa)
+#n - number of detector/emitter
+def count_pt_for_one_scan(start_angle, gamma, n, r):
+	gamma_pi = gamma * np.pi / 180
+	gamma_i = gamma/(n-1)
+	result_tab = []
+	start = start_angle - gamma/2
+	result_tab.append(start)
+	while n > 1:
+		start += gamma_1
+		result_tab.append(start)
+		print(start)
+		n-=1
+	start = start_angle - gamma/2
+
+#count_pt_for_one_scan(180, 15, 6)
+
 img_path = sys.argv[1]
 
 img = img_as_ubyte(io.imread(img_path, as_gray=True))
@@ -83,4 +101,24 @@ print(value_tab)
 
 print("---------------------------------------------")
 
+print("for example to discuse function to take points")
+#coordinates
+height = 8
+wight = 6
+tmp_tab = draw.line_nd((3,-4),(-5,2),endpoint=True)
 
+value_tab = []
+tab_len = len(tmp_tab[0])
+print(f'tab_len is equal {tab_len}')
+#print(tmp_tab)
+i = 0
+while i < tab_len:
+	tmp = []
+	tmp.append(tmp_tab[0][i])
+	tmp.append(tmp_tab[1][i])
+	value_tab.append(tmp)
+	i+=1
+#value_tab contains tables with coordinates points to count values in the curve
+print(value_tab)
+
+#print("---------------------------------------------")
