@@ -6,6 +6,43 @@ from skimage import io, draw, img_as_ubyte
 def line_to_y_x_list(l):
     return list(zip(l[0], l[1]))
 
+def edp_trace(cpfos_output, h, w):
+    def __range(v):
+        return range(-v//2, v//2)
+
+    y_range = __range(h)
+    x_range = __range(w)
+
+    filtered_lines = []
+
+    # Iterating over emitter-detector pairs
+    # obtained from the cpfos function.
+    # Below is an example of cpfos_output:
+    #
+    #    y, x
+    #     n1      n2      n3
+    # [[(3,-4), (4,-3), (5,-2)],
+    #  [(-5,2), (-4,3), (-3,4)]]
+    #
+    # n_x (where x is the number of detectors)
+    # are emitter-detector pairs.
+    # The upper tuple contains the coordinates
+    # of the starting point and the lower tuple
+    # contains the coordinates of the end point.
+
+    for ped in zip(cpfos_output[0], cpfos_output[1]):
+        line_to_filter = line_to_y_x_list(
+                draw.line_nd(ped[0], ped[1], endpoint=True)
+        )
+
+        for yx_pair in list(line_to_filter):
+            if not yx_pair[0] in y_range or not yx_pair[1] in x_range:
+                line_to_filter.remove(yx_pair)
+
+        filtered_lines.append(line_to_filter)
+
+    return filtered_lines
+
 #alfa - angular shift (PL przesuniecie katowe 'szyny' z detektorami)
 #gamma - angular span (PL rozpietosc katowa)
 #n - number of detector/emitter
@@ -126,7 +163,7 @@ print("---------------------------------------------")
 print("for example to discuse function to take points")
 #coordinates
 height = 8
-wight = 6
+width = 6
 tmp_tab = draw.line_nd((3,-4),(-5,2),endpoint=True)
 
 value_tab = []
@@ -142,5 +179,10 @@ while i < tab_len:
 	i+=1
 #value_tab contains tables with coordinates points to count values in the curve
 print(value_tab)
+
+dummy_cpfos = [[(3,-4)],[(-5,2)]]
+
+dummy_edp_trace = edp_trace(dummy_cpfos, height, width)
+print(dummy_edp_trace)
 
 #print("---------------------------------------------")
