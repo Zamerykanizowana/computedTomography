@@ -12,17 +12,36 @@ def line_to_y_x_list(l):
 def count_pt_for_one_scan(start_angle, gamma, n, r):
 	gamma_pi = gamma * np.pi / 180
 	gamma_i = gamma/(n-1)
-	result_tab = []
+	result_tab_det = []
+	result_tab_em = []
 	start = start_angle - gamma/2
-	result_tab.append(start)
-	while n > 1:
-		start += gamma_1
-		result_tab.append(start)
-		print(start)
-		n-=1
-	start = start_angle - gamma/2
+	stop = start_angle - 180 - gamma/2
 
-#count_pt_for_one_scan(180, 15, 6)
+	#alfa = np.pi
+	#x_1 = int(r * math.cos(alfa))
+	#y_1 = int(r * math.sin(alfa))
+	#pt_start.append(x_1)
+	#pt_start.append(y_1)
+	#x_2 = int(r * math.cos(alfa-np.pi))
+	#y_2 = int(r * math.sin(alfa-np.pi))
+	#pt_stop.append(x_2)
+	#pt_stop.append(y_2)
+
+	while n > 0:
+		y_1 = int(r * math.sin(math.radians(start)))
+		x_1 = int(r * math.cos(math.radians(start)))
+		tmp_tab_start = y_1,x_1
+		y_2 = int(r * math.sin(math.radians(stop)))
+		x_2 = int(r * math.cos(math.radians(stop)))
+		tmp_tab_stop = y_2,x_2
+		result_tab_det.append(tmp_tab_start)
+		result_tab_em.append(tmp_tab_stop)
+		start += gamma_i
+		stop += gamma_i
+		n-=1
+	#print(f'result_tab_det is equal {result_tab_det}')
+	#print(f'result_tab_em is equal {result_tab_em}')
+	return [result_tab_det, result_tab_em]
 
 img_path = sys.argv[1]
 
@@ -68,6 +87,9 @@ print("---------------------------------------------")
 r = (math.sqrt(width**2+height**2))/2
 print("Radius is equil " + str(r))
 
+result = count_pt_for_one_scan(180, 8, 5, r)
+print(f'result is equal {result}')
+
 #point on circle
 pt_start = []
 pt_stop = []
@@ -75,12 +97,12 @@ pt_stop = []
 alfa = np.pi
 x_1 = int(r * math.cos(alfa))
 y_1 = int(r * math.sin(alfa))
-pt_start.append(x_1)
 pt_start.append(y_1)
+pt_start.append(x_1)
 x_2 = int(r * math.cos(alfa-np.pi))
 y_2 = int(r * math.sin(alfa-np.pi))
-pt_stop.append(x_2)
 pt_stop.append(y_2)
+pt_stop.append(x_2)
 print(f'pt_start is equal {pt_start}')
 print(f'pt_stop is equal {pt_stop}')
 
