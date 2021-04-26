@@ -47,24 +47,34 @@ def edp_trace(cpfos_output, h, w):
 #gamma - angular span (PL rozpietosc katowa)
 #n - number of detector/emitter
 def count_pt_for_one_scan(start_angle, gamma, n, r):
-    gamma_pi = gamma * np.pi / 180
-    gamma_i = gamma/(n-1)
     result_tab_det = []
     result_tab_em = []
-    start = start_angle - gamma/2
-    stop = start_angle - 180 - gamma/2
-    while n > 0:
-        y_1 = int(r * math.sin(math.radians(start)))
-        x_1 = int(r * math.cos(math.radians(start)))
+    if n > 1:
+        gamma_pi = gamma * np.pi / 180
+        gamma_i = gamma/(n-1)
+        start = start_angle - gamma/2
+        stop = start_angle - 180 - gamma/2
+        while n > 0:
+            y_1 = int(r * math.sin(math.radians(start)))
+            x_1 = int(r * math.cos(math.radians(start)))
+            tmp_tab_start = y_1,x_1
+            y_2 = int(r * math.sin(math.radians(stop)))
+            x_2 = int(r * math.cos(math.radians(stop)))
+            tmp_tab_stop = y_2,x_2
+            result_tab_det.append(tmp_tab_start)
+            result_tab_em.append(tmp_tab_stop)
+            start += gamma_i
+            stop += gamma_i
+            n-=1
+    else:
+        y_1 = int(r * math.sin(math.radians(start_angle)))
+        x_1 = int(r * math.cos(math.radians(start_angle)))
         tmp_tab_start = y_1,x_1
-        y_2 = int(r * math.sin(math.radians(stop)))
-        x_2 = int(r * math.cos(math.radians(stop)))
+        y_2 = int(r * math.sin(math.radians(start_angle-180)))
+        x_2 = int(r * math.cos(math.radians(start_angle-180)))
         tmp_tab_stop = y_2,x_2
         result_tab_det.append(tmp_tab_start)
         result_tab_em.append(tmp_tab_stop)
-        start += gamma_i
-        stop += gamma_i
-        n-=1
     #print(f'result_tab_det is equal {result_tab_det}')
     #print(f'result_tab_em is equal {result_tab_em}')
     return [result_tab_det, result_tab_em]
@@ -79,6 +89,15 @@ def signed_trace_to_unsigned_trace(pts_tab_tup, h, w):
         tmp_tup = y_tmp,x_tmp
         result.append(tmp_tup)
     return result
+
+#input:
+#img:  image to take values from
+#pts_tab_tup: tables of tuplas with points counted to take value for detector
+def value_for_det_em(img, pts_tab_tup):
+    sum = 0
+    for ele in pts_tab_tup:
+        sum += img[ele[0],ele[1]]
+    return sum
 
 class SingleScan:
     def __init__(self, start_angle, span, n, w, h):
@@ -97,14 +116,15 @@ class CTScan:
         self.width = len(self.input_image[0])
         self.height = len(self.input_image)
         self.radius = (math.sqrt(self.width**2+self.height**2))/2
+        self.detector_length = self.height if self.height > self.width else self.width
 
 img_path = sys.argv[1]
 
-print("---------------------------------------------")
-
+print(50*'-')
 c = CTScan(img_path)
 print(f"Width of {img_path} is: {c.width}")
 print(f"Height of {img_path} is: {c.height}")
+print(f'Detector lenght is equal: {c.detector_length}')
 
 #io.imsave(img_path + ".diag.jpg",img)
 #print("Img " + img_path + ".diag.jpg" + " saved.")
@@ -120,3 +140,4 @@ print(50*"-")
 for trace_num, trace in enumerate(first_scan.traces_unsigned):
     print(f'[{trace_num}]: {trace}')
     print(50*"-")
+
