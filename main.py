@@ -4,13 +4,20 @@ import math
 from skimage import io, draw, img_as_ubyte
 from PIL import Image as image
 
+img_path = sys.argv[1]
+
 def sinogram(tab):
     height = len(tab)
-    print(f'sinogram - height {height}')
     width = len(tab[0].values)
-    img = image.new(mode = 'RGB', size = (width, height), color = 50)
-    #img.show()
-    img.save('test.jpg')
+
+    print(f'{width}x{height}')
+
+    s_arr = np.zeros((height, width), dtype=np.uint8)
+
+    for scan_index, scan in enumerate(tab):
+        s_arr[scan_index] = scan.values
+
+    io.imsave(img_path + ".diag.jpg", s_arr)
 
 
 def line_to_y_x_list(l):
@@ -140,6 +147,7 @@ class CTScan:
         deg = 180
 
         while deg > 0:
+            print(deg)
             self.scans.append(
                     SingleScan(self.input_image, deg, self.span, 
                         self.n, self.width, self.height, self.detector_length
@@ -147,16 +155,15 @@ class CTScan:
                     )
             deg -= self.angle_increment
 
-img_path = sys.argv[1]
 
 print(50*'-')
-c = CTScan(img_path, 30, 20, 4)
+c = CTScan(img_path, 90, 2, 180)
 print(f"Width of {img_path} is: {c.width}")
 print(f"Height of {img_path} is: {c.height}")
 print(f'Detector lenght is equal: {c.detector_length}')
 print(f"Radius is equal to {c.radius}")
 
-#io.imsave(img_path + ".diag.jpg",img)
+#io.imsave(img_path + ".diag.jpg",c.input_image)
 
 #print(c.scans)
 #print(len(c.scans))
