@@ -93,15 +93,15 @@ def signed_trace_to_unsigned_trace(pts_tab_tup, h, w):
 #input:
 #img:  image to take values from
 #pts_tab_tup: tables of tuplas with points counted to take value for detector
-def value_for_det_em(img, pts_tab_tup):
+def value_for_trace(img, pts_tab_tup, det_len):
     sum = 0
     for ele in pts_tab_tup:
-        #print(f'{ele[0]} and {ele[1]}')
-        sum += img[ele[0],ele[1]]
-    return sum
+        sum += img[ele[0],ele[1]] 
+    return sum//det_len
 
 class SingleScan:
-    def __init__(self, start_angle, span, n, w, h):
+    def __init__(self, img, start_angle, span, n, w, h, det_len):
+        self.image = img
         self.radius = (math.sqrt(w**2+h**2))/2
         self.points = count_pt_for_one_scan(
                 start_angle, span, n, self.radius
@@ -110,50 +110,46 @@ class SingleScan:
         self.traces_unsigned = [
                 signed_trace_to_unsigned_trace(e, h, w) for e in self.traces
                 ]
+        self.values = [value_for_trace(self.image, t, det_len) for t in self.traces_unsigned]
 
 class CTScan:
-    def __init__(self, image_path):
+    def __init__(self, image_path, span, angle_increment, n):
         self.input_image = img_as_ubyte(io.imread(image_path, as_gray=True))
         self.width = len(self.input_image[0])
         self.height = len(self.input_image)
         self.radius = (math.sqrt(self.width**2+self.height**2))/2
         self.detector_length = self.height if self.height > self.width else self.width
+        self.span = span
+        self.angle_increment = angle_increment
+        self.n = n
+        self.scans = []
+
+        self.__scan()
+
+    def __scan(self):
+        deg = 180
+
+        while deg > 0:
+            self.scans.append(
+                    SingleScan(self.input_image, deg, self.span, 
+                        self.n, self.width, self.height, self.detector_length
+                        )
+                    )
+            deg -= self.angle_increment
 
 img_path = sys.argv[1]
 
 print(50*'-')
-c = CTScan(img_path)
+c = CTScan(img_path, 30, 20, 4)
 print(f"Width of {img_path} is: {c.width}")
 print(f"Height of {img_path} is: {c.height}")
 print(f'Detector lenght is equal: {c.detector_length}')
 print(f"Radius is equal to {c.radius}")
 
 #io.imsave(img_path + ".diag.jpg",img)
-#print("Img " + img_path + ".diag.jpg" + " saved.")
 
-#gamma - angular span (PL rozpietosc katowa)
-angle = 30
-how_many_scans = 180//angle
-print(f'Number of scans is: {how_many_scans}')
-how_many_detectors = 2
-print(f'Number of detector(s) is: {how_many_detectors}')
+print(c.scans)
+print(len(c.scans))
 
-first_scan = SingleScan(180, 30, 2, c.width, c.height)
-
-print(f'Emitter points: {first_scan.points}')
-print(f'Emitter traces: {first_scan.traces}')
-
-print(50*"-")
-
-for trace_num, trace in enumerate(first_scan.traces_unsigned):
-    print(f'[{trace_num}]: {trace}')
-    print(50*"-")
-
-
-#print(f'test line {c.dontknow} - I do not know how it works.')
-
-sum = value_for_det_em(c.input_image, first_scan.traces_unsigned[0])
-print(f'sum is equal : {sum}')
-
-
-
+for scan in c.scans:
+    print(scan.values)
