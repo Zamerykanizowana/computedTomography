@@ -96,6 +96,7 @@ def signed_trace_to_unsigned_trace(pts_tab_tup, h, w):
 def value_for_det_em(img, pts_tab_tup):
     sum = 0
     for ele in pts_tab_tup:
+        #print(f'{ele[0]} and {ele[1]}')
         sum += img[ele[0],ele[1]]
     return sum
 
@@ -125,12 +126,19 @@ c = CTScan(img_path)
 print(f"Width of {img_path} is: {c.width}")
 print(f"Height of {img_path} is: {c.height}")
 print(f'Detector lenght is equal: {c.detector_length}')
+print(f"Radius is equal to {c.radius}")
 
 #io.imsave(img_path + ".diag.jpg",img)
 #print("Img " + img_path + ".diag.jpg" + " saved.")
-print(f"Radius is equal to {c.radius}")
 
-first_scan = SingleScan(180, 30, 3, c.width, c.height)
+#gamma - angular span (PL rozpietosc katowa)
+angle = 30
+how_many_scans = 180//angle
+print(f'Number of scans is: {how_many_scans}')
+how_many_detectors = 2
+print(f'Number of detector(s) is: {how_many_detectors}')
+
+first_scan = SingleScan(180, 30, 2, c.width, c.height)
 
 print(f'Emitter points: {first_scan.points}')
 print(f'Emitter traces: {first_scan.traces}')
@@ -140,4 +148,12 @@ print(50*"-")
 for trace_num, trace in enumerate(first_scan.traces_unsigned):
     print(f'[{trace_num}]: {trace}')
     print(50*"-")
+
+
+#print(f'test line {c.dontknow} - I do not know how it works.')
+
+sum = value_for_det_em(c.input_image, first_scan.traces_unsigned[0])
+print(f'sum is equal : {sum}')
+
+
 
