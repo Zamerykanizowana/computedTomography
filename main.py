@@ -2,6 +2,16 @@ import sys
 import numpy as np
 import math
 from skimage import io, draw, img_as_ubyte
+from PIL import Image as image
+
+def sinogram(tab):
+    height = len(tab)
+    print(f'sinogram - height {height}')
+    width = len(tab[0].values)
+    img = image.new(mode = 'RGB', size = (width, height), color = 50)
+    #img.show()
+    img.save('test.jpg')
+
 
 def line_to_y_x_list(l):
     return list(zip(l[0], l[1]))
@@ -148,8 +158,11 @@ print(f"Radius is equal to {c.radius}")
 
 #io.imsave(img_path + ".diag.jpg",img)
 
-print(c.scans)
-print(len(c.scans))
+#print(c.scans)
+#print(len(c.scans))
 
 for scan in c.scans:
     print(scan.values)
+
+
+sinogram(c.scans)
