@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import math
 from skimage import io, draw, img_as_ubyte
+from concurrent.futures import ProcessPoolExecutor
 from PIL import Image as image
 
 img_path = sys.argv[1]
@@ -23,12 +24,24 @@ def sinogram(tab):
 def line_to_y_x_list(l):
     return list(zip(l[0], l[1]))
 
-def edp_trace(cpfos_output, h, w):
-    def __range(v):
-        return range(-v//2, v//2)
+def __edp_trace(ped, y_range, x_range):
+    line_to_filter = line_to_y_x_list(
+            draw.line_nd(ped[0], ped[1], endpoint=True)
+            )
 
-    y_range = __range(h)
-    x_range = __range(w)
+    for yx_pair in list(line_to_filter):
+        if not yx_pair[0] in y_range or not yx_pair[1] in x_range:
+            line_to_filter.remove(yx_pair)
+
+    return line_to_filter
+
+def edp_trace(cpfos_output, h, w):
+    def __range(v, c):
+        for _ in range(c):
+            yield range(-v//2, v//2)
+
+    y_range = __range(h, len(cpfos_output[0]))
+    x_range = __range(w, len(cpfos_output[0]))
 
     filtered_lines = []
 
@@ -47,16 +60,9 @@ def edp_trace(cpfos_output, h, w):
     # of the starting point and the lower tuple
     # contains the coordinates of the end point.
 
-    for ped in zip(cpfos_output[0], cpfos_output[1]):
-        line_to_filter = line_to_y_x_list(
-                draw.line_nd(ped[0], ped[1], endpoint=True)
-                )
-
-        for yx_pair in list(line_to_filter):
-            if not yx_pair[0] in y_range or not yx_pair[1] in x_range:
-                line_to_filter.remove(yx_pair)
-
-        filtered_lines.append(line_to_filter)
+    with ProcessPoolExecutor() as e:
+        for r in e.map(__edp_trace, zip(cpfos_output[0], cpfos_output[1]), y_range, x_range):
+            filtered_lines.append(r)
 
     return filtered_lines
 
@@ -120,13 +126,17 @@ class SingleScan:
     def __init__(self, img, start_angle, span, n, w, h, det_len):
         self.image = img
         self.radius = (math.sqrt(w**2+h**2))/2
+        print('calculating points')
         self.points = count_pt_for_one_scan(
                 start_angle, span, n, self.radius
                 )
+        print('calculating traces')
         self.traces = edp_trace(self.points, h, w)
+        print('calculating unsigned traces')
         self.traces_unsigned = [
                 signed_trace_to_unsigned_trace(e, h, w) for e in self.traces
                 ]
+        print('calculating values for traces')
         self.values = [value_for_trace(self.image, t, det_len) for t in self.traces_unsigned]
 
 class CTScan:
