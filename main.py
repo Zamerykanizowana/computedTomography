@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import math
 from skimage import io, draw, img_as_ubyte
+from concurrent.futures import ProcessPoolExecutor
 from PIL import Image as image
 
 img_path = sys.argv[1]
@@ -116,6 +117,11 @@ def value_for_trace(img, pts_tab_tup, det_len):
         sum += img[ele[0],ele[1]] 
     return sum//det_len
 
+
+def fake_iter(to_repeat, how_many_times):
+    for _ in range(how_many_times):
+        yield to_repeat
+
 class SingleScan:
     def __init__(self, img, start_angle, span, n, w, h, det_len):
         self.image = img
@@ -141,7 +147,7 @@ class CTScan:
         self.n = n
         self.scans = []
 
-        self.__scan()
+        self.__scan_parallel()
 
     def __scan(self):
         deg = 180
@@ -154,6 +160,19 @@ class CTScan:
                         )
                     )
             deg -= self.angle_increment
+
+    def __scan_parallel(self):
+        deg = range(180, 0, -2)
+        __input_image = fake_iter(self.input_image, len(deg))
+        __span = fake_iter(self.span, len(deg))
+        __n = fake_iter(self.n, len(deg))
+        __w = fake_iter(self.width, len(deg))
+        __h = fake_iter(self.height, len(deg))
+        __det_len = fake_iter(self.detector_length, len(deg))
+
+        with ProcessPoolExecutor() as e:
+            for r in e.map(SingleScan, __input_image, deg, __span, __n, __w, __h, __det_len):
+                self.scans.append(r)
 
 
 print(50*'-')
