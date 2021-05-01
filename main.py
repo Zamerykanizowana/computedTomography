@@ -1,9 +1,8 @@
 import sys
 import numpy as np
 import math
+from helpers.edp_trace import edp_trace
 from skimage import io, draw, img_as_ubyte
-from concurrent.futures import ProcessPoolExecutor
-from PIL import Image as image
 
 img_path = sys.argv[1]
 
@@ -19,52 +18,6 @@ def sinogram(tab):
         s_arr[scan_index] = scan.values
 
     io.imsave(img_path + ".diag.jpg", s_arr)
-
-
-def line_to_y_x_list(l):
-    return list(zip(l[0], l[1]))
-
-def __edp_trace(ped, y_range, x_range):
-    line_to_filter = line_to_y_x_list(
-            draw.line_nd(ped[0], ped[1], endpoint=True)
-            )
-
-    for yx_pair in list(line_to_filter):
-        if not yx_pair[0] in y_range or not yx_pair[1] in x_range:
-            line_to_filter.remove(yx_pair)
-
-    return line_to_filter
-
-def edp_trace(cpfos_output, h, w):
-    def __range(v, c):
-        for _ in range(c):
-            yield range(-v//2, v//2)
-
-    y_range = __range(h, len(cpfos_output[0]))
-    x_range = __range(w, len(cpfos_output[0]))
-
-    filtered_lines = []
-
-    # Iterating over emitter-detector pairs
-    # obtained from the cpfos function.
-    # Below is an example of cpfos_output:
-    #
-    #    y, x
-    #     n1      n2      n3
-    # [[(3,-4), (4,-3), (5,-2)],
-    #  [(-5,2), (-4,3), (-3,4)]]
-    #
-    # n_x (where x is the number of detectors)
-    # are emitter-detector pairs.
-    # The upper tuple contains the coordinates
-    # of the starting point and the lower tuple
-    # contains the coordinates of the end point.
-
-    with ProcessPoolExecutor() as e:
-        for r in e.map(__edp_trace, zip(cpfos_output[0], cpfos_output[1]), y_range, x_range):
-            filtered_lines.append(r)
-
-    return filtered_lines
 
 #alfa - angular shift (PL przesuniecie katowe 'szyny' z detektorami)
 #gamma - angular span (PL rozpietosc katowa)
@@ -131,7 +84,7 @@ class SingleScan:
                 start_angle, span, n, self.radius
                 )
         print('calculating traces')
-        self.traces = edp_trace(self.points, h, w)
+        self.traces = edp_trace(self.points, h, w, parallel=True)
         print('calculating unsigned traces')
         self.traces_unsigned = [
                 signed_trace_to_unsigned_trace(e, h, w) for e in self.traces
