@@ -52,7 +52,13 @@ def count_pt_for_one_scan(start_angle, gamma, n, r):
         result_tab_det.append(tmp_tab_start)
         result_tab_em.append(tmp_tab_stop)
     #print(f'result_tab_det is equal {result_tab_det}')
+    #print(50*'-')
+    #print('Before reversed result_tab_em looks like: ')
     #print(f'result_tab_em is equal {result_tab_em}')
+    result_tab_em = reversed(result_tab_em)
+    #print('After reversed result_tab_em looks like: ')
+    #print(f'result_tab_em is equal {result_tab_em}')
+    #print(50*'-')
     return [result_tab_det, result_tab_em]
 
 
@@ -122,7 +128,7 @@ class CTScan:
         while deg > 0:
             print(deg)
             self.scans.append(
-                    SingleScan(self.input_image, deg, self.span, 
+                    SingleScan(self.input_image, deg, self.span,
                         self.n, self.width, self.height, self.detector_length
                         )
                     )
