@@ -9,7 +9,7 @@ img_path = sys.argv[1]
 def sinogram_progress(tab, height):
     tmp_height = len(tab)
     width = len(tab[0].values)
-    progress = len(tab)*100/height
+    progress = int(len(tab)*100/height)
     print(f'sinogram progress: {progress}%')
     s_arr = np.zeros((height, width), dtype=np.uint8)
     for scan_index, scan in enumerate(tab):
