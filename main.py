@@ -134,7 +134,7 @@ class CTScan:
 
     def __scan(self):
         deg = 180
-
+        print(f'singoram height is: {180//self.angle_increment}')
         while deg > 0:
             print(deg)
             self.scans.append(
@@ -146,7 +146,7 @@ class CTScan:
 
             self.scans[-1].generate_debug_image()
             if len(self.scans)%10 == 0:
-                sinogram_progress(self.scans,  self.height)
+                sinogram_progress(self.scans,  180//self.angle_increment)
 
 
 print(50*'-')
