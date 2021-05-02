@@ -6,11 +6,21 @@ from skimage import io, draw, img_as_ubyte
 
 img_path = sys.argv[1]
 
+def sinogram_progress(tab, height):
+    tmp_height = len(tab)
+    width = len(tab[0].values)
+    progress = len(tab)*100/height
+    print(f'sinogram progress: {progress}%')
+    s_arr = np.zeros((height, width), dtype=np.uint8)
+    for scan_index, scan in enumerate(tab):
+        s_arr[scan_index] = scan.values
+    io.imsave(f'/tmp/sinogram_progress_{progress}_percent.jpg', s_arr, check_contrast=False)
+
 def sinogram(tab):
     height = len(tab)
     width = len(tab[0].values)
 
-    print(f'{width}x{height}')
+    print(f'sinogram width x height: {width}x{height}')
 
     s_arr = np.zeros((height, width), dtype=np.uint8)
 
@@ -135,6 +145,8 @@ class CTScan:
             deg -= self.angle_increment
 
             self.scans[-1].generate_debug_image()
+            if len(self.scans)%10 == 0:
+                sinogram_progress(self.scans,  self.height)
 
 
 print(50*'-')
