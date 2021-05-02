@@ -79,6 +79,7 @@ class SingleScan:
     def __init__(self, img, start_angle, span, n, w, h, det_len):
         self.image = img
         self.radius = (math.sqrt(w**2+h**2))/2
+        self.start_angle = start_angle
         print('calculating points')
         self.points = count_pt_for_one_scan(
                 start_angle, span, n, self.radius
@@ -91,6 +92,15 @@ class SingleScan:
                 ]
         print('calculating values for traces')
         self.values = [value_for_trace(self.image, t, det_len) for t in self.traces_unsigned]
+
+    def generate_debug_image(self):
+        dbg_img = np.copy(self.image)
+
+        for trace in self.traces_unsigned:
+            for trace_y, trace_x in trace:
+                dbg_img[trace_y, trace_x] = 255
+
+        io.imsave(f'/tmp/dbg-{self.start_angle}.jpg', dbg_img)
 
 class CTScan:
     def __init__(self, image_path, span, angle_increment, n):
@@ -118,9 +128,11 @@ class CTScan:
                     )
             deg -= self.angle_increment
 
+            self.scans[-1].generate_debug_image()
+
 
 print(50*'-')
-c = CTScan(img_path, 90, 2, 180)
+c = CTScan(img_path, 90, 2, 10)
 print(f"Width of {img_path} is: {c.width}")
 print(f"Height of {img_path} is: {c.height}")
 print(f'Detector lenght is equal: {c.detector_length}')
@@ -133,6 +145,5 @@ print(f"Radius is equal to {c.radius}")
 
 for scan in c.scans:
     print(scan.values)
-
 
 sinogram(c.scans)
