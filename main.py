@@ -19,56 +19,54 @@ def sinogram_progress(tab, height):
 def sinogram(tab):
     height = len(tab)
     width = len(tab[0].values)
-
     print(f'sinogram width x height: {width}x{height}')
-
     s_arr = np.zeros((height, width), dtype=np.uint8)
-
     for scan_index, scan in enumerate(tab):
         s_arr[scan_index] = scan.values
-
     io.imsave(img_path + ".diag.jpg", s_arr)
 
 #alfa - angular shift (PL przesuniecie katowe 'szyny' z detektorami)
-#gamma - angular span (PL rozpietosc katowa)
-#n - number of detector/emitter
-def count_pt_for_one_scan(start_angle, gamma, n, r):
+#span - angular span (PL rozpietosc katowa)
+#n - number of pairs detector-emitter
+#t - type of detector-emitter - True: parallel, False: conical
+def count_pt_for_one_scan(start_angle, span, n, r, t):
+    def __one_point(angle):
+        y = int(r * math.sin(math.radians(angle)))
+        x = int(r * math.cos(math.radians(angle)))
+        return y,x
+
     result_tab_det = []
     result_tab_em = []
-    if n > 1:
-        gamma_pi = gamma * np.pi / 180
-        gamma_i = gamma/(n-1)
-        start = start_angle - gamma/2
-        stop = start_angle - 180 - gamma/2
-        while n > 0:
-            y_1 = int(r * math.sin(math.radians(start)))
-            x_1 = int(r * math.cos(math.radians(start)))
-            tmp_tab_start = y_1,x_1
-            y_2 = int(r * math.sin(math.radians(stop)))
-            x_2 = int(r * math.cos(math.radians(stop)))
-            tmp_tab_stop = y_2,x_2
-            result_tab_det.append(tmp_tab_start)
-            result_tab_em.append(tmp_tab_stop)
-            start += gamma_i
-            stop += gamma_i
-            n-=1
-    else:
-        y_1 = int(r * math.sin(math.radians(start_angle)))
-        x_1 = int(r * math.cos(math.radians(start_angle)))
-        tmp_tab_start = y_1,x_1
-        y_2 = int(r * math.sin(math.radians(start_angle-180)))
-        x_2 = int(r * math.cos(math.radians(start_angle-180)))
-        tmp_tab_stop = y_2,x_2
+    if n == 1:
+        print('One detector')
+        tmp_tab_start = __one_point(start_angle)
+        tmp_tab_stop = __one_point(start_angle - 180)
         result_tab_det.append(tmp_tab_start)
         result_tab_em.append(tmp_tab_stop)
-    #print(f'result_tab_det is equal {result_tab_det}')
-    #print(50*'-')
-    #print('Before reversed result_tab_em looks like: ')
-    #print(f'result_tab_em is equal {result_tab_em}')
+    else:
+        span_i = span/(n-1)
+        start = start_angle - span/2
+        stop = start_angle - 180 - span/2
+        if t:
+            print(f'Parallel scane with {n} detectors')
+            while n > 0:
+                tmp_tab_start = __one_point(start)
+                tmp_tab_stop = __one_point(stop)
+                result_tab_det.append(tmp_tab_start)
+                result_tab_em.append(tmp_tab_stop)
+                start += span_i
+                stop += span_i
+                n-=1
+        else:
+            print(f'Conical scan with {n} detectors')
+            tmp_tab_start = __one_point(start_angle)
+            while n > 0:
+                tmp_tab_stop = __one_point(stop)
+                result_tab_det.append(tmp_tab_start)
+                result_tab_em.append(tmp_tab_stop)
+                stop += span_i
+                n-=1
     result_tab_em = reversed(result_tab_em)
-    #print('After reversed result_tab_em looks like: ')
-    #print(f'result_tab_em is equal {result_tab_em}')
-    #print(50*'-')
     return [result_tab_det, result_tab_em]
 
 
@@ -92,13 +90,15 @@ def value_for_trace(img, pts_tab_tup, det_len):
     return sum//det_len
 
 class SingleScan:
-    def __init__(self, img, start_angle, span, n, w, h, det_len):
+    def __init__(self, img, start_angle, span, n, w, h, det_len, t):
+        #question for Adas: why all parameters are not self? 
+        print(50*'-')
         self.image = img
         self.radius = (math.sqrt(w**2+h**2))/2
         self.start_angle = start_angle
         print('calculating points')
         self.points = count_pt_for_one_scan(
-                start_angle, span, n, self.radius
+                start_angle, span, n, self.radius, t
                 )
         print('calculating traces')
         self.traces = edp_trace(self.points, h, w, parallel=True)
@@ -118,8 +118,9 @@ class SingleScan:
 
         io.imsave(f'/tmp/dbg-{self.start_angle}.jpg', dbg_img)
 
+#t - type of scans (True - parallel, False - conical)
 class CTScan:
-    def __init__(self, image_path, span, angle_increment, n):
+    def __init__(self, image_path, span, angle_increment, n, t):
         self.input_image = img_as_ubyte(io.imread(image_path, as_gray=True))
         self.width = len(self.input_image[0])
         self.height = len(self.input_image)
@@ -128,29 +129,34 @@ class CTScan:
         self.span = span
         self.angle_increment = angle_increment
         self.n = n
+        self.t = t
         self.scans = []
 
         self.__scan()
 
     def __scan(self):
-        deg = 180
-        print(f'singoram height is: {180//self.angle_increment}')
-        while deg > 0:
-            print(deg)
+        if self.t:
+            deg = 180
+        else:
+            deg = 360
+        print(f'singoram height is: {deg//self.angle_increment}')
+        tmp_deg = deg
+        while tmp_deg > 0:
+            print(tmp_deg)
             self.scans.append(
-                    SingleScan(self.input_image, deg, self.span,
-                        self.n, self.width, self.height, self.detector_length
+                    SingleScan(self.input_image, tmp_deg, self.span,
+                        self.n, self.width, self.height, self.detector_length, self.t
                         )
                     )
-            deg -= self.angle_increment
+            tmp_deg -= self.angle_increment
 
             self.scans[-1].generate_debug_image()
             if len(self.scans)%10 == 0:
-                sinogram_progress(self.scans,  180//self.angle_increment)
+                sinogram_progress(self.scans,  deg//self.angle_increment)
 
 
 print(50*'-')
-c = CTScan(img_path, 90, 2, 10)
+c = CTScan(img_path, 240, 4, 180, False)
 print(f"Width of {img_path} is: {c.width}")
 print(f"Height of {img_path} is: {c.height}")
 print(f'Detector lenght is equal: {c.detector_length}')
