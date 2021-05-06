@@ -1,6 +1,5 @@
-import sys
+import sys, subprocess, math
 import numpy as np
-import math
 from helpers.edp_trace import edp_trace
 from skimage import io, draw, img_as_ubyte
 
@@ -48,7 +47,7 @@ def count_pt_for_one_scan(start_angle, span, n, r, t):
         start = start_angle - span/2
         stop = start_angle - 180 - span/2
         if t:
-            print(f'Parallel scane with {n} detectors')
+            print(f'Parallel scan with {n} detectors')
             while n > 0:
                 tmp_tab_start = __one_point(start)
                 tmp_tab_stop = __one_point(stop)
@@ -109,7 +108,7 @@ class SingleScan:
         print('calculating values for traces')
         self.values = [value_for_trace(self.image, t, det_len) for t in self.traces_unsigned]
 
-    def generate_debug_image(self):
+    def generate_debug_image(self, make_gif=True):
         dbg_img = np.copy(self.image)
 
         for trace in self.traces_unsigned:
@@ -118,9 +117,14 @@ class SingleScan:
 
         io.imsave(f'/tmp/dbg-{self.start_angle}.jpg', dbg_img)
 
+        if make_gif:
+            c = subprocess
+
+
 #t - type of scans (True - parallel, False - conical)
 class CTScan:
     def __init__(self, image_path, span, angle_increment, n, t):
+        self.input_image_path = image_path
         self.input_image = img_as_ubyte(io.imread(image_path, as_gray=True))
         self.width = len(self.input_image[0])
         self.height = len(self.input_image)
@@ -130,44 +134,43 @@ class CTScan:
         self.angle_increment = angle_increment
         self.n = n
         self.t = t
+        self.start_deg = 180 if t else 360
         self.scans = []
+        self.sinogram_dim = (self.start_deg // angle_increment,n)
+        print(self.sinogram_dim)
+        self.sinogram = np.zeros(self.sinogram_dim, dtype=np.uint8)
 
         self.__scan()
 
     def __scan(self):
-        if self.t:
-            deg = 180
-        else:
-            deg = 360
-        print(f'singoram height is: {deg//self.angle_increment}')
-        tmp_deg = deg
-        while tmp_deg > 0:
-            print(tmp_deg)
+        deg = self.start_deg
+
+        while deg > 0:
+            print(deg)
             self.scans.append(
-                    SingleScan(self.input_image, tmp_deg, self.span,
+                    SingleScan(self.input_image, deg, self.span,
                         self.n, self.width, self.height, self.detector_length, self.t
                         )
                     )
-            tmp_deg -= self.angle_increment
+            deg -= self.angle_increment
 
             self.scans[-1].generate_debug_image()
-            if len(self.scans)%10 == 0:
-                sinogram_progress(self.scans,  deg//self.angle_increment)
+
+    def make_sinogram(self, save=True):
+        for scan_index, scan in enumerate(self.scans):
+            self.sinogram[scan_index] = scan.values
+
+        print(self.sinogram)
+
+        if save:
+            io.imsave(self.input_image_path + ".diag.jpg", self.sinogram)
 
 
 print(50*'-')
-c = CTScan(img_path, 240, 4, 180, False)
+c = CTScan(image_path=img_path, span=30, angle_increment=2, n=180, t=True)
 print(f"Width of {img_path} is: {c.width}")
 print(f"Height of {img_path} is: {c.height}")
-print(f'Detector lenght is equal: {c.detector_length}')
+print(f'Detector length is equal: {c.detector_length}')
 print(f"Radius is equal to {c.radius}")
 
-#io.imsave(img_path + ".diag.jpg",c.input_image)
-
-#print(c.scans)
-#print(len(c.scans))
-
-for scan in c.scans:
-    print(scan.values)
-
-sinogram(c.scans)
+c.make_sinogram()
