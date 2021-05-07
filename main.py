@@ -1,9 +1,8 @@
-import sys, subprocess, math
+import sys, subprocess, math, os, click
 import numpy as np
 from helpers.edp_trace import edp_trace
 from skimage import io, draw, img_as_ubyte
 
-img_path = sys.argv[1]
 
 def sinogram_progress(tab, height):
     tmp_height = len(tab)
@@ -117,8 +116,10 @@ class SingleScan:
 
         io.imsave(f'/tmp/dbg-{self.start_angle}.jpg', dbg_img)
 
-        if make_gif:
-            c = subprocess
+        if make_gif and self.start_angle == 2:
+            c = subprocess.run("bash -c 'convert -resize 50% -delay 3 -loop 0 dbg-{2..360}.jpg dbg.gif'",
+                    shell=True, capture_output=True, cwd='/tmp'
+                    )
 
 
 #t - type of scans (True - parallel, False - conical)
@@ -165,12 +166,22 @@ class CTScan:
         if save:
             io.imsave(self.input_image_path + ".diag.jpg", self.sinogram)
 
+@click.command()
+@click.argument('img_path')
+@click.option('--span', default=30)
+@click.option('--increment', default=2)
+@click.option('--n', default=180)
+def main(img_path, span, increment, n):
+    print(50*'-')
+    
+    c = CTScan(image_path=img_path, span=30, angle_increment=2, n=180, t=True)
 
-print(50*'-')
-c = CTScan(image_path=img_path, span=30, angle_increment=2, n=180, t=True)
-print(f"Width of {img_path} is: {c.width}")
-print(f"Height of {img_path} is: {c.height}")
-print(f'Detector length is equal: {c.detector_length}')
-print(f"Radius is equal to {c.radius}")
+    print(f"Width of {img_path} is: {c.width}")
+    print(f"Height of {img_path} is: {c.height}")
+    print(f'Detector length is equal: {c.detector_length}')
+    print(f"Radius is equal to {c.radius}")
 
-c.make_sinogram()
+    c.make_sinogram()
+
+if __name__ == '__main__':
+    main()
