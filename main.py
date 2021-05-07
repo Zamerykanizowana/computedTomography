@@ -174,7 +174,7 @@ class CTScan:
 def main(img_path, span, increment, n):
     print(50*'-')
     
-    c = CTScan(image_path=img_path, span=30, angle_increment=2, n=180, t=True)
+    c = CTScan(image_path=img_path, span=span, angle_increment=increment, n=n, t=True)
 
     print(f"Width of {img_path} is: {c.width}")
     print(f"Height of {img_path} is: {c.height}")
