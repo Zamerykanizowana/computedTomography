@@ -14,14 +14,14 @@ def sinogram_progress(tab, height):
         s_arr[scan_index] = scan.values
     io.imsave(f'/tmp/sinogram_progress_{progress}_percent.jpg', s_arr, check_contrast=False)
 
-def sinogram(tab):
-    height = len(tab)
-    width = len(tab[0].values)
-    print(f'sinogram width x height: {width}x{height}')
-    s_arr = np.zeros((height, width), dtype=np.uint8)
-    for scan_index, scan in enumerate(tab):
-        s_arr[scan_index] = scan.values
-    io.imsave(img_path + ".diag.jpg", s_arr)
+#def sinogram(tab):
+#    height = len(tab)
+#    width = len(tab[0].values)
+#    print(f'sinogram width x height: {width}x{height}')
+#    s_arr = np.zeros((height, width), dtype=np.uint8)
+#    for scan_index, scan in enumerate(tab):
+#        s_arr[scan_index] = scan.values
+#    io.imsave(img_path + ".diag.jpg", s_arr)
 
 #alfa - angular shift (PL przesuniecie katowe 'szyny' z detektorami)
 #span - angular span (PL rozpietosc katowa)
@@ -104,6 +104,13 @@ class SingleScan:
         self.traces_unsigned = [
                 signed_trace_to_unsigned_trace(e, h, w) for e in self.traces
                 ]
+
+#        #needed this stuff it remember myself how it works
+#        print(20*'-')
+#        for ele_idx, ele in enumerate(self.traces_unsigned):
+#            print(f'value of {ele_idx} is {ele}')
+#        print(20*'-')
+
         print('calculating values for traces')
         self.values = [value_for_trace(self.image, t, det_len) for t in self.traces_unsigned]
 
@@ -116,10 +123,10 @@ class SingleScan:
 
         io.imsave(f'/tmp/dbg-{self.start_angle}.jpg', dbg_img)
 
-        if make_gif and self.start_angle == 2:
-            c = subprocess.run("bash -c 'convert -resize 50% -delay 3 -loop 0 dbg-{2..360}.jpg dbg.gif'",
-                    shell=True, capture_output=True, cwd='/tmp'
-                    )
+       # if make_gif and self.start_angle == 2:
+       #     c = subprocess.run("bash -c 'convert -resize 50% -delay 3 -loop 0 dbg-{2..360}.jpg dbg.gif'",
+       #             shell=True, capture_output=True, cwd='/tmp'
+       #             )
 
 
 #t - type of scans (True - parallel, False - conical)
@@ -140,6 +147,8 @@ class CTScan:
         self.sinogram_dim = (self.start_deg // angle_increment,n)
         print(self.sinogram_dim)
         self.sinogram = np.zeros(self.sinogram_dim, dtype=np.uint8)
+        self.ct_result = np.zeros((self.height, self.width), dtype=np.uint8)
+        io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result)
 
         self.__scan()
 
@@ -166,6 +175,21 @@ class CTScan:
         if save:
             io.imsave(self.input_image_path + ".diag.jpg", self.sinogram)
 
+    def make_ct(self):
+        print(30*'-')
+        for idx, scan in enumerate(self.scans):
+            for trace_idx, trace in enumerate(scan.traces_unsigned):
+                #print(20*'-')
+                #print(trace)
+                for y, x in trace:
+                    #print(10*'-')
+                    #print(f'y: {y} x: {x}')
+                    self.ct_result[y,x] += scan.values[trace_idx]
+                    if self.ct_result[y,x] > 255:
+                        self.ct_result[y,x] = 255
+        io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result, check_contrast=False)
+
+
 @click.command()
 @click.argument('img_path')
 @click.option('--span', default=30)
@@ -182,6 +206,7 @@ def main(img_path, span, increment, n):
     print(f"Radius is equal to {c.radius}")
 
     c.make_sinogram()
+    c.make_ct()
 
 if __name__ == '__main__':
     main()
