@@ -183,14 +183,17 @@ class CTScan:
 
     def make_ct(self):
         print(20*'-' + ' start function make_ct ' + 20*'-')
-        tmp_list = [0] * self.width
-        tmp_list = [tmp_list] * self.height
+        #tmp_list = [0] * self.width
+        #tmp_list = [tmp_list] * self.height
+
+        tmp_list = np.zeros((self.height, self.width), dtype=np.uint)
+
         max_value = 0
         for idx, scan in enumerate(self.scans):
             for trace_idx, trace in enumerate(scan.traces_unsigned):
                 for y, x in trace:
-                    tmp_list[y][x] += scan.values[trace_idx]
-                    tmp_value = tmp_list[y][x]
+                    tmp_list[y, x] += scan.values[trace_idx]
+                    tmp_value = tmp_list[y, x]
                     if tmp_value > max_value:
                         max_value = tmp_value
 #                    if self.ct_result[y,x] > 255:
@@ -203,9 +206,10 @@ class CTScan:
         j = 0
         while i < self.height:
             while j < self.width:
-                tmp_list[i][j] = int(tmp_list[i][j]*255/max_value)
+                tmp_list[i, j] = int(tmp_list[i, j]*255/max_value)
                 j += 1
             i += 1
+            j = 0
 
         print(10*'-' + ' printed tmp_list 0-255 ' + 10*'-')
         for ele in tmp_list:
