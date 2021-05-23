@@ -137,8 +137,9 @@ class CTScan:
         self.n = n
         self.t = t
         self.start_deg = 180 if t else 360
+        self.degrees = self.__gen_degrees_lst()
         self.scans = []
-        self.sinogram_dim = (self.start_deg // angle_increment,n)
+        self.sinogram_dim = (len(self.degrees),n)
         print(self.sinogram_dim)
         self.sinogram = np.zeros(self.sinogram_dim, dtype=np.uint8)
         self.ct_result = np.zeros((self.height, self.width), dtype=np.uint8)
@@ -146,16 +147,18 @@ class CTScan:
 
         self.__scan()
 
-    def __scan(self):
-        tmp_deg = self.start_deg
+    def __gen_degrees_lst(self):
+        deg = self.start_deg
         degrees = []
 
-        while tmp_deg > 0:
-            degrees.append(tmp_deg)
-            tmp_deg -= self.angle_increment
+        while deg > 0:
+            degrees.append(deg)
+            deg -= self.angle_increment
 
+        return degrees
 
-        for d in degrees:
+    def __scan(self):
+        for d in self.degrees:
             print(d)
             self.scans.append(
                     SingleScan(self.input_image, d, self.span,
@@ -165,7 +168,7 @@ class CTScan:
 
             if self.dbg_image:
                 self.scans[-1].generate_debug_image()
-                if d == degrees[-1]:
+                if d == self.degrees[-1]:
                     print('Saving GIF...')
                     subprocess.run("bash -c 'convert -resize 50% -delay 3 -loop 0 dbg-{2..360}.jpg dbg.gif'",
                             shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd='/tmp'
@@ -174,8 +177,6 @@ class CTScan:
     def make_sinogram(self, save=True):
         for scan_index, scan in enumerate(self.scans):
             self.sinogram[scan_index] = scan.values
-
-        print(self.sinogram)
 
         if save:
             io.imsave(self.input_image_path + ".diag.jpg", self.sinogram)
