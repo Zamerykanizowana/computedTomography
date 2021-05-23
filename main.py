@@ -90,17 +90,17 @@ def value_for_trace(img, pts_tab_tup):
 class SingleScan:
     def __init__(self, img, start_angle, span, n, w, h, t):
         #question for Adas: why all parameters are not self? 
-        print(50*'-')
+#        print(50*'-')
         self.image = img
         self.radius = (math.sqrt(w**2+h**2))/2
         self.start_angle = start_angle
-        print('calculating points')
+#        print('calculating points')
         self.points = count_pt_for_one_scan(
                 start_angle, span, n, self.radius, t
                 )
-        print('calculating traces')
+#        print('calculating traces')
         self.traces = edp_trace(self.points, h, w, parallel=True)
-        print('calculating unsigned traces')
+#        print('calculating unsigned traces')
         self.traces_unsigned = [
                 signed_trace_to_unsigned_trace(e, h, w) for e in self.traces
                 ]
@@ -175,18 +175,42 @@ class CTScan:
             io.imsave(self.input_image_path + ".diag.jpg", self.sinogram)
 
     def make_ct(self):
-        print(30*'-')
+        print(20*'-' + ' start function make_ct ' + 20*'-')
+        list = [0] * self.width
+        list = [list] * self.height
+        max_value = 0
         for idx, scan in enumerate(self.scans):
             for trace_idx, trace in enumerate(scan.traces_unsigned):
-                #print(20*'-')
-                #print(trace)
                 for y, x in trace:
-                    #print(10*'-')
-                    #print(f'y: {y} x: {x}')
-                    self.ct_result[y,x] += scan.values[trace_idx]
-                    if self.ct_result[y,x] > 255:
-                        self.ct_result[y,x] = 255
+                    list[y][x] += scan.values[trace_idx]
+                    tmp_value = list[y][x]
+                    if tmp_value > max_value:
+                        max_value = tmp_value
+#                    if self.ct_result[y,x] > 255:
+#                        self.ct_result[y,x] = 255
+#        io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result, check_contrast=False)
+        print(10*'-' + ' printed list ' + 10*'-')
+        for ele in list:
+            print(ele)
+        i = 0
+        j = 0
+        while i < self.height:
+            while j < self.width:
+                list[i][j] = int(list[i][j]*255/max_value)
+                j += 1
+            i += 1
+
+        print(10*'-' + ' printed list 0-255 ' + 10*'-')
+        for ele in list:
+            print(ele)
+            
+        i = 0
+        while i < self.height:
+            self.ct_result[i] = list[i]
+            i += 1
+
         io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result, check_contrast=False)
+
 
 
 @click.command()
