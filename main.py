@@ -114,7 +114,7 @@ class SingleScan:
         print('calculating values for traces')
         self.values = [value_for_trace(self.image, t) for t in self.traces_unsigned]
 
-    def generate_debug_image(self, make_gif=True):
+    def generate_debug_image(self): 
         dbg_img = np.copy(self.image)
 
         for trace in self.traces_unsigned:
@@ -123,17 +123,12 @@ class SingleScan:
 
         io.imsave(f'/tmp/dbg-{self.start_angle}.jpg', dbg_img)
 
-        if make_gif and self.start_angle == 10:
-            c = subprocess.run("bash -c 'convert -resize 50% -delay 3 -loop 0 dbg-{2..360}.jpg dbg.gif'",
-                    shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd='/tmp'
-                    )
-
-
 #t - type of scans (True - parallel, False - conical)
 class CTScan:
-    def __init__(self, image_path, span, angle_increment, n, t):
+    def __init__(self, image_path, span, angle_increment, n, t, dbg_image=True):
         self.input_image_path = image_path
         self.input_image = img_as_ubyte(io.imread(image_path, as_gray=True))
+        self.dbg_image = dbg_image
         self.width = len(self.input_image[0])
         self.height = len(self.input_image)
         self.radius = (math.sqrt(self.width**2+self.height**2))/2
@@ -152,18 +147,29 @@ class CTScan:
         self.__scan()
 
     def __scan(self):
-        deg = self.start_deg
+        tmp_deg = self.start_deg
+        degrees = []
 
-        while deg > 0:
-            print(deg)
+        while tmp_deg > 0:
+            degrees.append(tmp_deg)
+            tmp_deg -= self.angle_increment
+
+
+        for d in degrees:
+            print(d)
             self.scans.append(
-                    SingleScan(self.input_image, deg, self.span,
+                    SingleScan(self.input_image, d, self.span,
                         self.n, self.width, self.height, self.t
                         )
                     )
-            deg -= self.angle_increment
 
-            self.scans[-1].generate_debug_image()
+            if self.dbg_image:
+                self.scans[-1].generate_debug_image()
+                if d == degrees[-1]:
+                    print('Saving GIF...')
+                    subprocess.run("bash -c 'convert -resize 50% -delay 3 -loop 0 dbg-{2..360}.jpg dbg.gif'",
+                            shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd='/tmp'
+                            )
 
     def make_sinogram(self, save=True):
         for scan_index, scan in enumerate(self.scans):
