@@ -81,14 +81,14 @@ def signed_trace_to_unsigned_trace(pts_tab_tup, h, w):
 #input:
 #img:  image to take values from
 #pts_tab_tup: tables of tuplas with points counted to take value for detector
-def value_for_trace(img, pts_tab_tup, det_len):
+def value_for_trace(img, pts_tab_tup):
     sum = 0
     for ele in pts_tab_tup:
         sum += img[ele[0],ele[1]] 
-    return sum//det_len
+    return sum//len(pts_tab_tup)
 
 class SingleScan:
-    def __init__(self, img, start_angle, span, n, w, h, det_len, t):
+    def __init__(self, img, start_angle, span, n, w, h, t):
         #question for Adas: why all parameters are not self? 
         print(50*'-')
         self.image = img
@@ -112,7 +112,7 @@ class SingleScan:
 #        print(20*'-')
 
         print('calculating values for traces')
-        self.values = [value_for_trace(self.image, t, det_len) for t in self.traces_unsigned]
+        self.values = [value_for_trace(self.image, t) for t in self.traces_unsigned]
 
     def generate_debug_image(self, make_gif=True):
         dbg_img = np.copy(self.image)
@@ -123,10 +123,10 @@ class SingleScan:
 
         io.imsave(f'/tmp/dbg-{self.start_angle}.jpg', dbg_img)
 
-       # if make_gif and self.start_angle == 2:
-       #     c = subprocess.run("bash -c 'convert -resize 50% -delay 3 -loop 0 dbg-{2..360}.jpg dbg.gif'",
-       #             shell=True, capture_output=True, cwd='/tmp'
-       #             )
+        if make_gif and self.start_angle == 10:
+            c = subprocess.run("bash -c 'convert -resize 50% -delay 3 -loop 0 dbg-{2..360}.jpg dbg.gif'",
+                    shell=True, capture_output=True, cwd='/tmp'
+                    )
 
 
 #t - type of scans (True - parallel, False - conical)
@@ -137,7 +137,6 @@ class CTScan:
         self.width = len(self.input_image[0])
         self.height = len(self.input_image)
         self.radius = (math.sqrt(self.width**2+self.height**2))/2
-        self.detector_length = self.height if self.height > self.width else self.width
         self.span = span
         self.angle_increment = angle_increment
         self.n = n
@@ -159,7 +158,7 @@ class CTScan:
             print(deg)
             self.scans.append(
                     SingleScan(self.input_image, deg, self.span,
-                        self.n, self.width, self.height, self.detector_length, self.t
+                        self.n, self.width, self.height, self.t
                         )
                     )
             deg -= self.angle_increment
@@ -202,7 +201,6 @@ def main(img_path, span, increment, n):
 
     print(f"Width of {img_path} is: {c.width}")
     print(f"Height of {img_path} is: {c.height}")
-    print(f'Detector length is equal: {c.detector_length}')
     print(f"Radius is equal to {c.radius}")
 
     c.make_sinogram()
