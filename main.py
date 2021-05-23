@@ -181,11 +181,7 @@ class CTScan:
         if save:
             io.imsave(self.input_image_path + ".diag.jpg", self.sinogram)
 
-    def make_ct(self):
-        print(20*'-' + ' start function make_ct ' + 20*'-')
-        #tmp_list = [0] * self.width
-        #tmp_list = [tmp_list] * self.height
-
+    def make_ct(self, save=True):
         tmp_list = np.zeros((self.height, self.width), dtype=np.uint)
 
         max_value = 0
@@ -196,31 +192,15 @@ class CTScan:
                     tmp_value = tmp_list[y, x]
                     if tmp_value > max_value:
                         max_value = tmp_value
-#                    if self.ct_result[y,x] > 255:
-#                        self.ct_result[y,x] = 255
-#        io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result, check_contrast=False)
-        print(10*'-' + ' printed tmp_list ' + 10*'-')
-        for ele in tmp_list:
-            print(ele)
-        i = 0
-        j = 0
-        while i < self.height:
-            while j < self.width:
-                tmp_list[i, j] = int(tmp_list[i, j]*255/max_value)
-                j += 1
-            i += 1
-            j = 0
 
-        print(10*'-' + ' printed tmp_list 0-255 ' + 10*'-')
-        for ele in tmp_list:
-            print(ele)
-            
-        i = 0
-        while i < self.height:
-            self.ct_result[i] = tmp_list[i]
-            i += 1
+        for h in range(0, self.height):
+            for w in range(0, self.width):
+                tmp_list[h, w] = int(tmp_list[h, w]*255/max_value)
 
-        io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result, check_contrast=False)
+        self.ct_result = tmp_list.astype(np.uint8)
+
+        if save:
+            io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result, check_contrast=False)
 
 
 
