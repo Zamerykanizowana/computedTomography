@@ -125,7 +125,7 @@ class SingleScan:
 
         if make_gif and self.start_angle == 10:
             c = subprocess.run("bash -c 'convert -resize 50% -delay 3 -loop 0 dbg-{2..360}.jpg dbg.gif'",
-                    shell=True, capture_output=True, cwd='/tmp'
+                    shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd='/tmp'
                     )
 
 
