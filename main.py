@@ -183,37 +183,37 @@ class CTScan:
 
     def make_ct(self):
         print(20*'-' + ' start function make_ct ' + 20*'-')
-        list = [0] * self.width
-        list = [list] * self.height
+        tmp_list = [0] * self.width
+        tmp_list = [tmp_list] * self.height
         max_value = 0
         for idx, scan in enumerate(self.scans):
             for trace_idx, trace in enumerate(scan.traces_unsigned):
                 for y, x in trace:
-                    list[y][x] += scan.values[trace_idx]
-                    tmp_value = list[y][x]
+                    tmp_list[y][x] += scan.values[trace_idx]
+                    tmp_value = tmp_list[y][x]
                     if tmp_value > max_value:
                         max_value = tmp_value
 #                    if self.ct_result[y,x] > 255:
 #                        self.ct_result[y,x] = 255
 #        io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result, check_contrast=False)
-        print(10*'-' + ' printed list ' + 10*'-')
-        for ele in list:
+        print(10*'-' + ' printed tmp_list ' + 10*'-')
+        for ele in tmp_list:
             print(ele)
         i = 0
         j = 0
         while i < self.height:
             while j < self.width:
-                list[i][j] = int(list[i][j]*255/max_value)
+                tmp_list[i][j] = int(tmp_list[i][j]*255/max_value)
                 j += 1
             i += 1
 
-        print(10*'-' + ' printed list 0-255 ' + 10*'-')
-        for ele in list:
+        print(10*'-' + ' printed tmp_list 0-255 ' + 10*'-')
+        for ele in tmp_list:
             print(ele)
             
         i = 0
         while i < self.height:
-            self.ct_result[i] = list[i]
+            self.ct_result[i] = tmp_list[i]
             i += 1
 
         io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result, check_contrast=False)
