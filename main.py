@@ -216,6 +216,7 @@ class CTScan:
 def main(img_path, span, increment, n):
     logging.basicConfig(format="[%(asctime)s] %(levelname)-8s| %(lineno)s - %(funcName)20s() >> %(message)s")
     logging.getLogger(LOGGER_NAME).setLevel(logging.DEBUG)
+    logging.getLogger('edp_trace').setLevel(logging.DEBUG)
     l.info(50*'-')
     
     c = CTScan(image_path=img_path, span=span, angle_increment=increment, n=n, t=True)

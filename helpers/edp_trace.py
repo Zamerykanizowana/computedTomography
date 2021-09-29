@@ -1,6 +1,7 @@
+import logging
 from skimage import draw
 from concurrent.futures import ProcessPoolExecutor
-from multiprocessing import cpu_count
+from multiprocessing import Pool, cpu_count
 
 # The 'edp_trace' function works by
 # iterating over emitter-detector pairs
@@ -24,10 +25,14 @@ from multiprocessing import cpu_count
 # It draws a line (trace) and filters it so that
 # the values are within the provided x and y range.
 
+l = logging.getLogger('edp_trace') 
+
 def line_to_y_x_list(l):
     return list(zip(l[0], l[1]))
 
-def __edp_trace(ped, y_range, x_range):
+def __edp_trace(ped):
+    y_range = ped[2]
+    x_range = ped[3]
     line_to_filter = line_to_y_x_list(
             draw.line_nd(ped[0], ped[1], endpoint=True)
             )
@@ -48,9 +53,11 @@ def edp_trace_parallel(cpfos_output, h, w):
 
     filtered_lines = []
 
+    pool = Pool(processes=cpu_count()) 
 
-    with ProcessPoolExecutor(max_workers=cpu_count()) as e:
-        for r in e.map(__edp_trace, zip(cpfos_output[0], cpfos_output[1]), y_range, x_range):
+    with pool as e:
+        for r in e.map(__edp_trace, zip(cpfos_output[0], cpfos_output[1], y_range, x_range)):
+            l.info(r)
             filtered_lines.append(r)
 
     return filtered_lines
