@@ -101,12 +101,13 @@ class SingleScan:
         self.points = count_pt_for_one_scan(
                 start_angle, span, n, self.radius, t
                 )
-#        l.info('calculating traces')
+        l.info('calculating traces')
         self.traces = edp_trace(self.points, h, w, parallel=True)
-#        l.info('calculating unsigned traces')
+        l.info('calculating unsigned traces')
         self.traces_unsigned = [
                 signed_trace_to_unsigned_trace(e, h, w) for e in self.traces
                 ]
+        l.info('finished calculating signed and unsigned traces')
 
 #        #needed this stuff it remember myself how it works
 #        l.info(20*'-')

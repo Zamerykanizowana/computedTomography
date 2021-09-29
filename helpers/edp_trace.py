@@ -1,5 +1,6 @@
 from skimage import draw
 from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import cpu_count
 
 # The 'edp_trace' function works by
 # iterating over emitter-detector pairs
@@ -48,7 +49,7 @@ def edp_trace_parallel(cpfos_output, h, w):
     filtered_lines = []
 
 
-    with ProcessPoolExecutor() as e:
+    with ProcessPoolExecutor(max_workers=cpu_count()) as e:
         for r in e.map(__edp_trace, zip(cpfos_output[0], cpfos_output[1]), y_range, x_range):
             filtered_lines.append(r)
 
