@@ -1,14 +1,17 @@
-import sys, subprocess, math, os, click
+import sys, subprocess, math, os, click, logging
 import numpy as np
 from helpers.edp_trace import edp_trace
 from skimage import io, draw, img_as_ubyte
 
+LOGGER_NAME = 'ct_interactive'
+
+l = logging.getLogger(LOGGER_NAME)
 
 def sinogram_progress(tab, height):
     tmp_height = len(tab)
     width = len(tab[0].values)
     progress = int(len(tab)*100/height)
-    print(f'sinogram progress: {progress}%')
+    l.info(f'sinogram progress: {progress}%')
     s_arr = np.zeros((height, width), dtype=np.uint8)
     for scan_index, scan in enumerate(tab):
         s_arr[scan_index] = scan.values
@@ -17,7 +20,7 @@ def sinogram_progress(tab, height):
 #def sinogram(tab):
 #    height = len(tab)
 #    width = len(tab[0].values)
-#    print(f'sinogram width x height: {width}x{height}')
+#    l.info(f'sinogram width x height: {width}x{height}')
 #    s_arr = np.zeros((height, width), dtype=np.uint8)
 #    for scan_index, scan in enumerate(tab):
 #        s_arr[scan_index] = scan.values
@@ -36,7 +39,7 @@ def count_pt_for_one_scan(start_angle, span, n, r, t):
     result_tab_det = []
     result_tab_em = []
     if n == 1:
-        print('One detector')
+        l.info('One detector')
         tmp_tab_start = __one_point(start_angle)
         tmp_tab_stop = __one_point(start_angle - 180)
         result_tab_det.append(tmp_tab_start)
@@ -46,7 +49,7 @@ def count_pt_for_one_scan(start_angle, span, n, r, t):
         start = start_angle - span/2
         stop = start_angle - 180 - span/2
         if t:
-            print(f'Parallel scan with {n} detectors')
+            l.info(f'Parallel scan with {n} detectors')
             while n > 0:
                 tmp_tab_start = __one_point(start)
                 tmp_tab_stop = __one_point(stop)
@@ -56,7 +59,7 @@ def count_pt_for_one_scan(start_angle, span, n, r, t):
                 stop += span_i
                 n-=1
         else:
-            print(f'Conical scan with {n} detectors')
+            l.info(f'Conical scan with {n} detectors')
             tmp_tab_start = __one_point(start_angle)
             while n > 0:
                 tmp_tab_stop = __one_point(stop)
@@ -90,28 +93,28 @@ def value_for_trace(img, pts_tab_tup):
 class SingleScan:
     def __init__(self, img, start_angle, span, n, w, h, t):
         #question for Adas: why all parameters are not self? 
-#        print(50*'-')
+#        l.info(50*'-')
         self.image = img
         self.radius = (math.sqrt(w**2+h**2))/2
         self.start_angle = start_angle
-#        print('calculating points')
+#        l.info('calculating points')
         self.points = count_pt_for_one_scan(
                 start_angle, span, n, self.radius, t
                 )
-#        print('calculating traces')
+#        l.info('calculating traces')
         self.traces = edp_trace(self.points, h, w, parallel=True)
-#        print('calculating unsigned traces')
+#        l.info('calculating unsigned traces')
         self.traces_unsigned = [
                 signed_trace_to_unsigned_trace(e, h, w) for e in self.traces
                 ]
 
 #        #needed this stuff it remember myself how it works
-#        print(20*'-')
+#        l.info(20*'-')
 #        for ele_idx, ele in enumerate(self.traces_unsigned):
-#            print(f'value of {ele_idx} is {ele}')
-#        print(20*'-')
+#            l.info(f'value of {ele_idx} is {ele}')
+#        l.info(20*'-')
 
-        print('calculating values for traces')
+        l.info('calculating values for traces')
         self.values = [value_for_trace(self.image, t) for t in self.traces_unsigned]
 
     def generate_debug_image(self): 
@@ -140,7 +143,7 @@ class CTScan:
         self.degrees = self.__gen_degrees_lst()
         self.scans = []
         self.sinogram_dim = (len(self.degrees),n)
-        print(self.sinogram_dim)
+        l.info(self.sinogram_dim)
         self.sinogram = np.zeros(self.sinogram_dim, dtype=np.uint8)
         self.ct_result = np.zeros((self.height, self.width), dtype=np.uint8)
         io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result)
@@ -159,7 +162,7 @@ class CTScan:
 
     def __scan(self):
         for d in self.degrees:
-            print(d)
+            l.info(d)
             self.scans.append(
                     SingleScan(self.input_image, d, self.span,
                         self.n, self.width, self.height, self.t
@@ -169,7 +172,7 @@ class CTScan:
             if self.dbg_image:
                 self.scans[-1].generate_debug_image()
                 if d == self.degrees[-1]:
-                    print('Saving GIF...')
+                    l.info('Saving GIF...')
                     subprocess.run("bash -c 'convert -resize 50% -delay 3 -loop 0 dbg-{2..360}.jpg dbg.gif'",
                             shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd='/tmp'
                             )
@@ -210,13 +213,15 @@ class CTScan:
 @click.option('--increment', default=2)
 @click.option('--n', default=180)
 def main(img_path, span, increment, n):
-    print(50*'-')
+    logging.basicConfig(format="[%(asctime)s] %(levelname)-8s| %(lineno)s - %(funcName)20s() >> %(message)s")
+    logging.getLogger(LOGGER_NAME).setLevel(logging.DEBUG)
+    l.info(50*'-')
     
     c = CTScan(image_path=img_path, span=span, angle_increment=increment, n=n, t=True)
 
-    print(f"Width of {img_path} is: {c.width}")
-    print(f"Height of {img_path} is: {c.height}")
-    print(f"Radius is equal to {c.radius}")
+    l.info(f"Width of {img_path} is: {c.width}")
+    l.info(f"Height of {img_path} is: {c.height}")
+    l.info(f"Radius is equal to {c.radius}")
 
     c.make_sinogram()
     c.make_ct()
