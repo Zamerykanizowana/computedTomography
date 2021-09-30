@@ -102,7 +102,7 @@ class SingleScan:
                 start_angle, span, n, self.radius, t
                 )
         l.info('calculating traces')
-        self.traces = edp_trace(self.points, h, w, parallel=True)
+        self.traces = edp_trace(self.points, h, w, parallel=False)
         l.info('calculating unsigned traces')
         self.traces_unsigned = [
                 signed_trace_to_unsigned_trace(e, h, w) for e in self.traces

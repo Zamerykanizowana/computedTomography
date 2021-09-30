@@ -33,13 +33,19 @@ def line_to_y_x_list(l):
 def __edp_trace(ped):
     y_range = ped[2]
     x_range = ped[3]
+
+    l.info('start draw.line_nd')
     line_to_filter = line_to_y_x_list(
             draw.line_nd(ped[0], ped[1], endpoint=True)
             )
 
+    l.info('start filtering')
+
     for yx_pair in list(line_to_filter):
         if not yx_pair[0] in y_range or not yx_pair[1] in x_range:
             line_to_filter.remove(yx_pair)
+
+    l.info('stop filtering')
 
     return line_to_filter
 
@@ -53,11 +59,10 @@ def edp_trace_parallel(cpfos_output, h, w):
 
     filtered_lines = []
 
-    pool = Pool(processes=cpu_count()) 
+    pool = Pool(processes=cpu_count()*2) 
 
     with pool as e:
         for r in e.map(__edp_trace, zip(cpfos_output[0], cpfos_output[1], y_range, x_range)):
-            l.info(r)
             filtered_lines.append(r)
 
     return filtered_lines
@@ -72,7 +77,8 @@ def edp_trace_sequential(cpfos_output, h, w):
     filtered_lines = []
 
     for ped in zip(cpfos_output[0], cpfos_output[1]):
-        filtered_lines.append(__edp_trace(ped, y_range, x_range)) 
+        arg = *ped,y_range,x_range
+        filtered_lines.append(__edp_trace(arg)) 
 
     return filtered_lines
 
