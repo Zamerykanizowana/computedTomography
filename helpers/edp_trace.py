@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 from skimage import draw
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Pool, cpu_count
@@ -27,14 +28,11 @@ from multiprocessing import Pool, cpu_count
 
 l = logging.getLogger('edp_trace') 
 
-def line_to_y_x_list(l):
-    return list(zip(l[0], l[1]))
-
 def __edp_trace(ped):
     y_range = ped[2]
     x_range = ped[3]
 
-    line_to_filter = line_to_y_x_list(
+    line_to_filter = np.column_stack(
             draw.line_nd(ped[0], ped[1], endpoint=True)
             )
 
