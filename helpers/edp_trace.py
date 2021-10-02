@@ -32,11 +32,30 @@ def __edp_trace(ped):
     y_range = ped[2]
     x_range = ped[3]
 
-    line_to_filter = np.column_stack(
+    # The code below should be replaced by proper arguments.
+    y_list = list(y_range)
+    x_list = list(x_range)
+
+    y_lo = y_list[0]
+    y_hi = y_list[-1]
+
+    x_lo = x_list[0]
+    x_hi = x_list[-1]
+
+    # Line to filter.
+    ltf = np.column_stack(
             draw.line_nd(ped[0], ped[1], endpoint=True)
             )
 
-    return [yx for yx in line_to_filter if yx[0] in y_range and yx[1] in x_range]
+    # Lines that have points in allowed range.
+    in_range = np.where(
+            (ltf[:,0] >= y_lo) & 
+            (ltf[:,0] < y_hi) & 
+            (ltf[:,1] >= x_lo) & 
+            (ltf[:,1] < x_hi)
+            )
+
+    return ltf[in_range]
 
 def edp_trace_parallel(cpfos_output, h, w):
     def __range(v, c):
