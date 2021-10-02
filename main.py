@@ -189,6 +189,9 @@ class CTScan:
         tmp_list = np.zeros((self.height, self.width), dtype=np.uint)
 
         max_value = 0
+
+        l.info(f'Initial max value: {max_value}')
+
         for idx, scan in enumerate(self.scans):
             for trace_idx, trace in enumerate(scan.traces_unsigned):
                 for y, x in trace:
@@ -196,6 +199,8 @@ class CTScan:
                     tmp_value = tmp_list[y, x]
                     if tmp_value > max_value:
                         max_value = tmp_value
+
+        l.info(f'Final max value: {max_value}')
 
         for h in range(0, self.height):
             for w in range(0, self.width):
