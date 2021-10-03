@@ -184,25 +184,40 @@ class CTScan:
 
         for idx, scan in enumerate(self.scans):
             l.info(f'Processing scan {idx}')
+            curr_norm_list = np.zeros((self.height, self.width), dtype=np.uint)
+
             for trace_idx, trace in enumerate(scan.traces_unsigned):
                 # The call below reverses the 'column_stack' result.
                 y_tr, x_tr = np.hsplit(trace, 2)
                 tmp_list[y_tr, x_tr] += scan.values[trace_idx]
 
-        l.info('Stop iteration')
+            max_value = np.amax(tmp_list)
+            
+            for h in range(0, self.height):
+                for w in range(0, self.width):
+                    if max_value > 0:
+                        curr_norm_list[h, w] = int(tmp_list[h, w]*255/max_value)
+                    else:
+                        curr_norm_list[h, w] = int(tmp_list[h, w])
 
-        max_value = np.amax(tmp_list)
+            io.imsave(
+                    self.input_image_path + f".{idx}.ct_result.jpg", 
+                    curr_norm_list.astype(np.uint8), 
+                    check_contrast=False
+                    )
 
-        l.info(f'Max value: {max_value}')
+        #l.info('Stop iteration')
 
-        normalize_func = np.vectorize(lambda e: int(e*255/max_value))
 
-        tmp_list = normalize_func(tmp_list)
+        #l.info(f'Max value: {max_value}')
 
-        self.ct_result = tmp_list.astype(np.uint8)
 
-        if save:
-            io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result, check_contrast=False)
+        #tmp_list = normalize_func(tmp_list)
+
+        #self.ct_result = tmp_list.astype(np.uint8)
+
+        #if save:
+        #    io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result, check_contrast=False)
 
 
 
