@@ -195,9 +195,9 @@ class CTScan:
 
         l.info(f'Max value: {max_value}')
 
-        for h in range(0, self.height):
-            for w in range(0, self.width):
-                tmp_list[h, w] = int(tmp_list[h, w]*255/max_value)
+        normalize_func = np.vectorize(lambda e: int(e*255/max_value))
+
+        tmp_list = normalize_func(tmp_list)
 
         self.ct_result = tmp_list.astype(np.uint8)
 
