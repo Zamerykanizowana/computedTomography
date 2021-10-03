@@ -92,28 +92,21 @@ def value_for_trace(img, pts_tab_tup):
 
 class SingleScan:
     def __init__(self, img, start_angle, span, n, w, h, t):
-        #question for Adas: why all parameters are not self? 
-#        l.info(50*'-')
         self.image = img
         self.radius = (math.sqrt(w**2+h**2))/2
         self.start_angle = start_angle
-#        l.info('calculating points')
         self.points = count_pt_for_one_scan(
                 start_angle, span, n, self.radius, t
                 )
+
         l.info('calculating traces')
         self.traces = edp_trace(self.points, h, w, parallel=True)
+
         l.info('calculating unsigned traces')
         self.traces_unsigned = [
                 signed_trace_to_unsigned_trace(e, h, w) for e in self.traces
                 ]
         l.info('finished calculating signed and unsigned traces')
-
-#        #needed this stuff it remember myself how it works
-#        l.info(20*'-')
-#        for ele_idx, ele in enumerate(self.traces_unsigned):
-#            l.info(f'value of {ele_idx} is {ele}')
-#        l.info(20*'-')
 
         l.info('calculating values for traces')
         self.values = [value_for_trace(self.image, t) for t in self.traces_unsigned]
