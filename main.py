@@ -185,7 +185,7 @@ class CTScan:
         for idx, scan in enumerate(self.scans):
             l.info(f'Processing scan {idx}')
             for trace_idx, trace in enumerate(scan.traces_unsigned):
-                l.info(f'\tProcessing trace {trace_idx}')
+                # The call below reverses the 'column_stack' result.
                 y_tr, x_tr = np.hsplit(trace, 2)
                 tmp_list[y_tr, x_tr] += scan.values[trace_idx]
 
