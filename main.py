@@ -116,6 +116,7 @@ class CTScan:
         self.start_deg = 180 if t else 360
         self.degrees = self.__gen_degrees_lst()
         self.scans = []
+        self.scan_images = []
         self.sinogram_dim = (len(self.degrees),n)
         self.sinogram = np.zeros(self.sinogram_dim, dtype=np.uint8)
         self.ct_result = np.zeros((self.height, self.width), dtype=np.uint8)
@@ -156,7 +157,7 @@ class CTScan:
         if save:
             io.imsave(self.input_image_path + ".diag.jpg", self.sinogram)
 
-    def make_ct(self, save=True):
+    def make_ct(self, save=False):
         tmp_list = np.zeros((self.height, self.width), dtype=np.uint)
 
         l.info('Start iteration')
@@ -179,11 +180,14 @@ class CTScan:
                     else:
                         curr_norm_list[h, w] = tmp_list[h, w]
 
-            io.imsave(
-                    self.input_image_path + f".{idx}.ct_result.jpg", 
-                    curr_norm_list.astype(np.uint8), 
-                    check_contrast=False
-                    )
+            self.scan_images.append(curr_norm_list)
+
+            if save or idx == (len(self.scans)-1):
+                io.imsave(
+                        self.input_image_path + f".{idx}.ct_result.jpg", 
+                        curr_norm_list.astype(np.uint8), 
+                        check_contrast=False
+                        )
 
 @click.command()
 @click.argument('img_path')
