@@ -177,7 +177,7 @@ class CTScan:
                     if max_value > 0:
                         curr_norm_list[h, w] = int(tmp_list[h, w]*255/max_value)
                     else:
-                        curr_norm_list[h, w] = int(tmp_list[h, w])
+                        curr_norm_list[h, w] = tmp_list[h, w]
 
             io.imsave(
                     self.input_image_path + f".{idx}.ct_result.jpg", 
