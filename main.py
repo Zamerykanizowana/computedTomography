@@ -7,25 +7,6 @@ LOGGER_NAME = 'ct_interactive'
 
 l = logging.getLogger(LOGGER_NAME)
 
-def sinogram_progress(tab, height):
-    tmp_height = len(tab)
-    width = len(tab[0].values)
-    progress = int(len(tab)*100/height)
-    l.info(f'sinogram progress: {progress}%')
-    s_arr = np.zeros((height, width), dtype=np.uint8)
-    for scan_index, scan in enumerate(tab):
-        s_arr[scan_index] = scan.values
-    io.imsave(f'/tmp/sinogram_progress_{progress}_percent.jpg', s_arr, check_contrast=False)
-
-#def sinogram(tab):
-#    height = len(tab)
-#    width = len(tab[0].values)
-#    l.info(f'sinogram width x height: {width}x{height}')
-#    s_arr = np.zeros((height, width), dtype=np.uint8)
-#    for scan_index, scan in enumerate(tab):
-#        s_arr[scan_index] = scan.values
-#    io.imsave(img_path + ".diag.jpg", s_arr)
-
 #alfa - angular shift (PL przesuniecie katowe 'szyny' z detektorami)
 #span - angular span (PL rozpietosc katowa)
 #n - number of pairs detector-emitter
@@ -136,10 +117,8 @@ class CTScan:
         self.degrees = self.__gen_degrees_lst()
         self.scans = []
         self.sinogram_dim = (len(self.degrees),n)
-        l.info(self.sinogram_dim)
         self.sinogram = np.zeros(self.sinogram_dim, dtype=np.uint8)
         self.ct_result = np.zeros((self.height, self.width), dtype=np.uint8)
-        io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result)
 
         self.__scan()
 
@@ -205,21 +184,6 @@ class CTScan:
                     curr_norm_list.astype(np.uint8), 
                     check_contrast=False
                     )
-
-        #l.info('Stop iteration')
-
-
-        #l.info(f'Max value: {max_value}')
-
-
-        #tmp_list = normalize_func(tmp_list)
-
-        #self.ct_result = tmp_list.astype(np.uint8)
-
-        #if save:
-        #    io.imsave(self.input_image_path + ".ct_result.jpg", self.ct_result, check_contrast=False)
-
-
 
 @click.command()
 @click.argument('img_path')
