@@ -188,19 +188,18 @@ class CTScan:
     def make_ct(self, save=True):
         tmp_list = np.zeros((self.height, self.width), dtype=np.uint)
 
-        max_value = 0
-
-        l.info(f'Initial max value: {max_value}')
+        l.info('Start iteration')
 
         for idx, scan in enumerate(self.scans):
             for trace_idx, trace in enumerate(scan.traces_unsigned):
                 for y, x in trace:
                     tmp_list[y, x] += scan.values[trace_idx]
-                    tmp_value = tmp_list[y, x]
-                    if tmp_value > max_value:
-                        max_value = tmp_value
 
-        l.info(f'Final max value: {max_value}')
+        l.info('Stop iteration')
+
+        max_value = np.amax(tmp_list)
+
+        l.info(f'Max value: {max_value}')
 
         for h in range(0, self.height):
             for w in range(0, self.width):
@@ -219,7 +218,7 @@ class CTScan:
 @click.option('--increment', default=2)
 @click.option('--n', default=180)
 def main(img_path, span, increment, n):
-    logging.basicConfig(format="[%(asctime)s] %(levelname)-8s| %(lineno)s - %(funcName)20s() >> %(message)s")
+    logging.basicConfig(format="[%(asctime)s] %(levelname)-8s| %(lineno)s >> %(message)s")
     logging.getLogger(LOGGER_NAME).setLevel(logging.DEBUG)
     logging.getLogger('edp_trace').setLevel(logging.DEBUG)
     l.info(50*'-')
