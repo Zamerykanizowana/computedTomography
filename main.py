@@ -191,6 +191,7 @@ class CTScan:
         l.info('Start iteration')
 
         for idx, scan in enumerate(self.scans):
+            l.info(f'Processing scan {idx}')
             for trace_idx, trace in enumerate(scan.traces_unsigned):
                 for y, x in trace:
                     tmp_list[y, x] += scan.values[trace_idx]
