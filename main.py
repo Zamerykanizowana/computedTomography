@@ -73,12 +73,11 @@ def count_pt_for_one_scan(start_angle, span, n, r, t):
 
 #switch frame of reference (19,-10) --> (0,0)
 def signed_trace_to_unsigned_trace(pts_tab_tup, h, w):
-    result = []
-    for ele in pts_tab_tup:
-        y_tmp = abs(ele[0]-(h//2-1))
-        x_tmp = ele[1]+w//2
-        tmp_tup = y_tmp,x_tmp
-        result.append(tmp_tup)
+    result = np.array(pts_tab_tup)
+
+    result[:,0] = abs(result[:,0]-(h//2-1))
+    result[:,1] = result[:,1]+w//2
+
     return result
 
 #input:
@@ -186,8 +185,9 @@ class CTScan:
         for idx, scan in enumerate(self.scans):
             l.info(f'Processing scan {idx}')
             for trace_idx, trace in enumerate(scan.traces_unsigned):
-                for y, x in trace:
-                    tmp_list[y, x] += scan.values[trace_idx]
+                l.info(f'\tProcessing trace {trace_idx}')
+                y_tr, x_tr = np.hsplit(trace, 2)
+                tmp_list[y_tr, x_tr] += scan.values[trace_idx]
 
         l.info('Stop iteration')
 
