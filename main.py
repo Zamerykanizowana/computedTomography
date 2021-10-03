@@ -121,7 +121,7 @@ class SingleScan:
 
 #t - type of scans (True - parallel, False - conical)
 class CTScan:
-    def __init__(self, image_path, span, angle_increment, n, t, dbg_image=True):
+    def __init__(self, image_path, span, angle_increment, n, t, dbg_image=False):
         self.input_image_path = image_path
         self.input_image = img_as_ubyte(io.imread(image_path, as_gray=True))
         self.dbg_image = dbg_image
@@ -211,13 +211,20 @@ class CTScan:
 @click.option('--span', default=30)
 @click.option('--increment', default=2)
 @click.option('--n', default=180)
-def main(img_path, span, increment, n):
+@click.option('--dbg-image', default=False)
+def main(img_path, span, increment, n, dbg_image):
     logging.basicConfig(format="[%(asctime)s] %(levelname)-8s| %(lineno)s >> %(message)s")
     logging.getLogger(LOGGER_NAME).setLevel(logging.DEBUG)
     logging.getLogger('edp_trace').setLevel(logging.DEBUG)
-    l.info(50*'-')
     
-    c = CTScan(image_path=img_path, span=span, angle_increment=increment, n=n, t=True)
+    c = CTScan(
+            image_path=img_path, 
+            span=span, 
+            angle_increment=increment, 
+            n=n, 
+            t=True,
+            dbg_image=dbg_image
+            )
 
     l.info(f"Width of {img_path} is: {c.width}")
     l.info(f"Height of {img_path} is: {c.height}")
