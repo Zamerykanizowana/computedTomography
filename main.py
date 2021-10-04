@@ -157,7 +157,7 @@ class CTScan:
         if save:
             io.imsave(self.input_image_path + ".diag.jpg", self.sinogram)
 
-    def make_ct(self, save=False):
+    def make_ct(self, save=True):
         tmp_list = np.zeros((self.height, self.width), dtype=np.uint)
 
         l.info('Start iteration')
@@ -172,13 +172,11 @@ class CTScan:
                 tmp_list[y_tr, x_tr] += scan.values[trace_idx]
 
             max_value = np.amax(tmp_list)
-            
-            for h in range(0, self.height):
-                for w in range(0, self.width):
-                    if max_value > 0:
-                        curr_norm_list[h, w] = int(tmp_list[h, w]*255/max_value)
-                    else:
-                        curr_norm_list[h, w] = tmp_list[h, w]
+
+            if max_value > 0:
+                curr_norm_list = np.floor(tmp_list*255/max_value)
+            else:
+                curr_norm_list = np.copy(tmp_list)
 
             self.scan_images.append(curr_norm_list)
 
