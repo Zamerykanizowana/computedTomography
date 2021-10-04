@@ -155,8 +155,6 @@ class CTScan:
     def make_ct(self, save=True):
         tmp_list = np.zeros((self.height, self.width), dtype=np.uint)
 
-        l.info('Start iteration')
-
         for idx, scan in enumerate(self.scans):
             l.info(f'Processing scan {idx}')
             curr_norm_list = np.zeros((self.height, self.width), dtype=np.uint)
@@ -175,7 +173,7 @@ class CTScan:
 
             self.scan_images.append(curr_norm_list)
 
-            if save or idx == (len(self.scans)-1):
+            if save:
                 io.imsave(
                         self.input_image_path + f".{idx}.ct_result.jpg", 
                         curr_norm_list.astype(np.uint8), 
