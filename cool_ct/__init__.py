@@ -171,7 +171,7 @@ class CTScan:
             else:
                 curr_norm_list = np.copy(tmp_list)
 
-            self.scan_images.append(curr_norm_list)
+            self.scan_images.append(curr_norm_list.astype(np.uint8))
 
             if save:
                 io.imsave(
