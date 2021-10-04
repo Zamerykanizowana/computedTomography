@@ -144,11 +144,6 @@ class CTScan:
 
             if self.dbg_image:
                 self.scans[-1].generate_debug_image()
-                if d == self.degrees[-1]:
-                    l.info('Saving GIF...')
-                    subprocess.run("bash -c 'convert -resize 50% -delay 3 -loop 0 dbg-{2..360}.jpg dbg.gif'",
-                            shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd='/tmp'
-                            )
 
     def make_sinogram(self, save=True):
         for scan_index, scan in enumerate(self.scans):
