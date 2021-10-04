@@ -30,7 +30,7 @@ def count_pt_for_one_scan(start_angle, span, n, r, t):
         start = start_angle - span/2
         stop = start_angle - 180 - span/2
         if t:
-            l.info(f'Parallel scan with {n} detectors')
+            l.debug(f'Parallel scan with {n} detectors')
             while n > 0:
                 tmp_tab_start = __one_point(start)
                 tmp_tab_stop = __one_point(stop)
@@ -40,7 +40,7 @@ def count_pt_for_one_scan(start_angle, span, n, r, t):
                 stop += span_i
                 n-=1
         else:
-            l.info(f'Conical scan with {n} detectors')
+            l.debug(f'Conical scan with {n} detectors')
             tmp_tab_start = __one_point(start_angle)
             while n > 0:
                 tmp_tab_stop = __one_point(stop)
@@ -79,16 +79,16 @@ class SingleScan:
                 start_angle, span, n, self.radius, t
                 )
 
-        l.info('calculating traces')
+        l.debug('calculating traces')
         self.traces = edp_trace(self.points, h, w, parallel=True)
 
-        l.info('calculating unsigned traces')
+        l.debug('calculating unsigned traces')
         self.traces_unsigned = [
                 signed_trace_to_unsigned_trace(e, h, w) for e in self.traces
                 ]
-        l.info('finished calculating signed and unsigned traces')
+        l.debug('finished calculating signed and unsigned traces')
 
-        l.info('calculating values for traces')
+        l.debug('calculating values for traces')
         self.values = [value_for_trace(self.image, t) for t in self.traces_unsigned]
 
     def generate_debug_image(self): 
