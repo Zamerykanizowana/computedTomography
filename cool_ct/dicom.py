@@ -1,4 +1,4 @@
-import pydicom, random
+import pydicom, random, datetime
 from pydicom.dataset import Dataset, FileMetaDataset
 from pydicom.sequence import Sequence
 
@@ -32,7 +32,11 @@ def save_dicom(image_data, output_file, patient_name):
     ds.SOPClassUID = file_meta.MediaStorageSOPClassUID 
     ds.SOPInstanceUID = instance_uid 
     ds.Modality = 'CT'
-    ds.PatientName = patient_name
+
+    # Leading spaces are forbidden for PN:
+    # http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html#sect_6.2.1.2
+    ds.PatientName = patient_name.replace(' ', '^')
+
     ds.PatientID = str(random.randrange(1,100))
     ds.StudyInstanceUID = pydicom.uid.generate_uid() 
     ds.SeriesInstanceUID = pydicom.uid.generate_uid()
@@ -49,6 +53,13 @@ def save_dicom(image_data, output_file, patient_name):
     ds.HighBit = 7
     ds.PixelRepresentation = 0
     ds.PixelData = image_data.tobytes()
+
+    # Set timelog data
+    current_datetime = datetime.datetime.now()
+    ds.ContentDate = current_datetime.strftime('%Y%m%d')
+    ds.AcquisitionDate = ds.ContentDate
+    ds.ContentTime = current_datetime.strftime('%H%M%S.%f')
+    ds.AcquisitionTime = ds.ContentTime
 
     ds.file_meta = file_meta
     ds.is_implicit_VR = False
