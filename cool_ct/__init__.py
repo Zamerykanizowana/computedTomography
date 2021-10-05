@@ -182,8 +182,12 @@ class CTScan:
                         )
 
     def save_dicom(self, patient_name):
+        output_file = self.input_image_path + ".dcm"
+
         save_dicom_wrapper(
                 image_data=self.scan_images[-1].astype(np.uint8),
-                output_file=self.input_image_path + ".dcm",
+                output_file=output_file,
                 patient_name=patient_name
                 )
+
+        return output_file
