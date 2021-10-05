@@ -10,9 +10,10 @@ l = logging.getLogger(LOGGER_NAME)
 @click.option('--span', default=30)
 @click.option('--increment', default=2)
 @click.option('--n', default=180)
+@click.option('--dicom', default=True)
 @click.option('--dbg-image', default=False)
 @click.option('--debug', default=False)
-def main(img_path, span, increment, n, dbg_image, debug):
+def main(img_path, span, increment, n, dicom, dbg_image, debug):
     logging.basicConfig(format="[%(asctime)s] %(levelname)-8s| %(lineno)-3s >> %(message)s")
 
     logging_modules = [LOGGER_NAME, 'ct', 'edp_trace']
@@ -38,6 +39,9 @@ def main(img_path, span, increment, n, dbg_image, debug):
 
     c.make_sinogram()
     c.make_ct()
+
+    if dicom:
+        c.save_dicom('Cool Person')
 
 if __name__ == '__main__':
     main()

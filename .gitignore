@@ -1,5 +1,6 @@
 __pycache__/
 *.diag.jpg
 *.ct_result.jpg
+*.dcm
 .env/
 .ipynb_checkpoints/
