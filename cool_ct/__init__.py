@@ -1,6 +1,7 @@
 import sys, subprocess, math, os, logging
 import numpy as np
 from .edp_trace import edp_trace
+from .dicom import save_dicom as save_dicom_wrapper
 from skimage import io, draw, img_as_ubyte
 
 LOGGER_NAME = 'ct'
@@ -180,3 +181,9 @@ class CTScan:
                         check_contrast=False
                         )
 
+    def save_dicom(self, patient_name):
+        save_dicom_wrapper(
+                image_data=self.scan_images[-1].astype(np.uint8),
+                output_file=self.input_image_path + ".dcm",
+                patient_name=patient_name
+                )
