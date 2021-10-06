@@ -1,17 +1,33 @@
-# Computed Tomography
-**Project for Computer Science in Medicine.**
+# cool_ct
 
-[Project requirements](https://docs.google.com/document/d/15zb5myHaLJqZUuv3Wv-gWXCP6wZn44s8QhGeW3izCGg/edit?usp=sharing)
+This repository contains the code of `cool_ct`, a [computed tomography scan](https://en.wikipedia.org/wiki/CT_scan) simulator written in Python.
 
-[Similar project, but in JavaFX](https://github.com/zperkowski/ComputedTomography)
+It was written for an assessment task for a university course.
 
-[Basic knowledge about tomography PL](https://brain.fuw.edu.pl/edu/index.php/Obrazowanie:Obrazowanie_Medyczne/Podstawy_Rekonstrukcji_Obraz%C3%B3w_Tomograficznych)
+## Features
 
-[Presenation about Computed Tomography](https://docs.google.com/presentation/d/1SeYwXUH1SB114OJO8NVovHBeupTIpM4muwNpd7r4pO0/edit#slide=id.gc39bab9b14_1_182)
+* Generates incremental CT scans and sinogram.
+* Configurable count and span of emitter-detector pairs and angular increment.
+* Outputs the final image to a (mostly compliant) DICOM file.
 
-### How to run
-The simpliest way to run simulation
-```python
-python main.py image_path
+## Basic usage
+
+Create the virtual environment and install requirements:
+
+```bash
+python3 -m venv .env
+source .env/bin/activate
+pip3 install -r requirements.txt
 ```
-Where `image_path` is path to image file. 
+
+Use the command-line interface to generate a CT scan using 180 emitter-detector pairs:
+
+```console
+$ python3 cli.py INPUT_IMAGE --span 40 --increment 2 --n 180
+```
+
+It is also possible to use the software interactively using the provided [Jupyter Notebook](CT.ipynb) file.
+
+## Example image
+
+![CT scan](images/CT_ScoutView.out_example.jpg)
